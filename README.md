@@ -12,7 +12,7 @@
 ---
 
 ### ❤️ The Passion Project
-This website was built as a passion project by the **LUMYVERSE** team to provide the popular **Cobbleverse** modpack with a state-of-the-art, modern web presence. It brings together cutting-edge web design, serverless AI integration, and robust security protections into one unified player platform.
+This website was developed as a passion project by **Harshith VNS Redrouthu** and **Sai Ochir** to provide the popular **Cobbleverse** modpack with a state-of-the-art, modern web presence. It brings together cutting-edge web design, serverless AI integration, and robust security protections into one unified player platform.
 
 ---
 
