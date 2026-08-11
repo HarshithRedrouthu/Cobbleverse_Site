@@ -1,0 +1,2489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>COBBLEVERSE</title>
+<link rel="icon" type="image/png" href="public/Cobbleverse_Logo.png" />
+<meta name="description" content="COBBLEVERSE is a Minecraft modpack built around custom mechanics, ritual altars, exploration, and long-term progression. Download on Modrinth or CurseForge." />
+<meta property="og:title" content="COBBLEVERSE" />
+<meta property="og:description" content="A Minecraft modpack built around custom mechanics, ritual altars, exploration, and long-term progression." />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="theme-color" content="#050507" />
+
+<!-- Preload 3D Gallery Images -->
+<link rel="preload" as="image" href="public/Arceus_LegendaryStructure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/EternatusCocoon_LegendaryStrucure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/AshHome_CustomStructure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/Cressellia_CustomStructure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/DistortionWorld_CustomDimensions_Gallery.jpg" />
+<link rel="preload" as="image" href="public/NightmareDimension_CustomDimensions_Gallery.jpg" />
+<link rel="preload" as="image" href="public/KantoEliteFour_GymStructure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/SinnohEliteFour_GymStructure_Gallery.jpg" />
+<link rel="preload" as="image" href="public/Megastones_CustomMegaSites_Gallery.jpg" />
+
+<!-- Tailwind CDN for layout utilities -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Open-source FingerprintJS — used only to add a device signal to LumyBot's rate limiter
+     alongside IP, so switching VPN exit IPs alone doesn't reset a maxed-out quota. This is the
+     free/open-source build, not the paid Pro API: it has no server-side verification, so it can
+     still be defeated by incognito mode or a different browser. It's a speed bump, not a wall. -->
+<script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@4/dist/fp.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['CobblePixel', 'system-ui', 'sans-serif'] },
+        colors: {
+          void: '#050507',
+          purewhite: '#ffffff',
+          cobalt: '#1d4ed8',
+          crimson: '#dc2626',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  /* ============================================================
+     Custom pixel-art display font
+     ============================================================ */
+  @font-face {
+    font-family: 'CobblePixel';
+    src: url('public/determination.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  html, body, button, input, textarea, select, h1, h2, h3, h4, h5, h6 {
+    font-family: 'CobblePixel', system-ui, sans-serif;
+  }
+
+  /* ============================================================
+     DESIGN SYSTEM — "Dark Glass & Futuristic Cyber-Obsidian"
+     ============================================================ */
+  :root {
+    --bg-void: #050507;
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.75);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg-hover: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-blur: 16px;
+    --glass-shadow: 0 10px 32px rgba(0, 0, 0, 0.6);
+    --text-glow-white: 0 0 5px rgba(255, 255, 255, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'CobblePixel', system-ui, sans-serif;
+    color: var(--text-white);
+    background-color: var(--bg-void);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-smooth: never;
+  }
+
+  /* ============================================================
+     FUTURISTIC CYBER-OBSIDIAN BACKGROUND
+     ============================================================ */
+  .bg-void {
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    overflow: hidden;
+    background:
+      radial-gradient(at 15% 15%, rgba(29, 78, 216, 0.14), transparent 50%),
+      radial-gradient(at 85% 10%, rgba(220, 38, 38, 0.12), transparent 55%),
+      radial-gradient(at 80% 85%, rgba(18, 9, 28, 0.85), transparent 50%),
+      radial-gradient(at 10% 90%, rgba(12, 12, 30, 0.85), transparent 55%),
+      linear-gradient(165deg, #050507 0%, #080812 45%, #0c0b16 75%, #050507 100%);
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+  }
+  .orb-cyber-a {
+    width: 55vw; height: 55vw;
+    top: -12%; left: -12%;
+    background: radial-gradient(circle, rgba(29, 78, 216, 0.16), transparent 70%);
+    animation: drift-a 30s ease-in-out infinite;
+  }
+  .orb-cyber-b {
+    width: 48vw; height: 48vw;
+    bottom: -15%; right: -5%;
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.14), transparent 70%);
+    animation: drift-b 36s ease-in-out infinite;
+  }
+  .orb-cyber-c {
+    width: 40vw; height: 40vw;
+    top: 30%; right: 15%;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
+    animation: drift-c 38s ease-in-out infinite reverse;
+  }
+
+  @keyframes drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(5vw, 6vh, 0) scale(1.1); }
+  }
+  @keyframes drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+    50%      { transform: translate3d(-6vw, -5vh, 0) scale(0.95); opacity: 1; }
+  }
+  @keyframes drift-c {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50%      { transform: translate3d(-4vw, 6vh, 0) scale(1.05); }
+  }
+
+  /* ============================================================
+     HARDWARE & MOBILE PERFORMANCE OPTIMIZATIONS
+     ============================================================ */
+  .orb, .marquee-track, .badge-icon-frame::before {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  section:not(#top), footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 450px;
+  }
+
+  @media (max-width: 768px) {
+    .glass-nav {
+      background: rgba(10, 10, 18, 0.92) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .glass-card, .badge-card {
+      background: rgba(12, 12, 20, 0.92) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .badge-ribbon {
+      background: rgba(10, 10, 18, 0.92) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb, .marquee-track, .badge-icon-frame::before {
+      animation: none !important;
+    }
+  }
+
+  /* ============================================================
+     GLOWING WHITE TYPOGRAPHY
+     ============================================================ */
+  h1, h2, h3, h4, h5, h6, p, a, span, button {
+    text-shadow: var(--text-glow-white);
+  }
+
+  /* ============================================================
+     DARK GLASSMORPHISM PRIMITIVES
+     ============================================================ */
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-nav {
+    background: rgba(10, 10, 18, 0.6);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  }
+
+  .glass-card {
+    background:
+      linear-gradient(#0a0a14, #0a0a14) padding-box,
+      linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) border-box;
+    border: 2px solid transparent;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-5px);
+    background:
+      linear-gradient(#07070d, #07070d) padding-box,
+      linear-gradient(135deg, #1d4ed8 0%, #dc2626 100%) border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 0 25px rgba(29, 78, 216, 0.5), 0 0 25px rgba(220, 38, 38, 0.5), 0 16px 40px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Modrinth Card — Bright Green 2px gradient outline & neon halo */
+  .card-modrinth:hover {
+    background:
+      linear-gradient(#07070d, #07070d) padding-box,
+      linear-gradient(135deg, #10b981 0%, #34d399 100%) border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.55), 0 0 40px rgba(52, 211, 153, 0.3);
+  }
+
+  /* CurseForge Card — Fiery Orange 2px gradient outline & neon halo */
+  .card-curseforge:hover {
+    background:
+      linear-gradient(#07070d, #07070d) padding-box,
+      linear-gradient(135deg, #f97316 0%, #fb923c 100%) border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 40px rgba(251, 146, 60, 0.35);
+  }
+
+  /* ============================================================
+     "GREAT BALL" DUAL-GLOW HOVER EFFECTS
+     ============================================================ */
+  .nav-link, .nav-item {
+    color: #ffffff;
+    transition: all 0.3s ease;
+  }
+  .nav-link:hover, .nav-item:hover {
+    color: #ffffff;
+    text-shadow: -4px 0 10px rgba(29, 78, 216, 0.9), 4px 0 10px rgba(220, 38, 38, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .nav-link img {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .nav-link:hover img {
+    transform: scale(1.1) rotate(-3deg);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+  }
+
+  /* Buttons */
+  .btn-glass {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    color: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-glass:hover {
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 22px rgba(29, 78, 216, 0.45), 0 0 22px rgba(220, 38, 38, 0.45);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  }
+
+  /* Primary CTA ("Download Now") */
+  .btn-primary {
+    background: #ffffff;
+    border: 1px solid #ffffff;
+    color: #050507;
+    text-shadow: none;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  }
+  .btn-primary:hover {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #050507;
+    text-shadow: none;
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 45px rgba(255, 255, 255, 0.4);
+  }
+
+  /* ============================================================
+     GYM BADGE SCROLLER RIBBON
+     ============================================================ */
+  .badge-ribbon {
+    background: rgba(10, 10, 18, 0.5);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .marquee-wrapper {
+    overflow: hidden;
+    user-select: none;
+    padding-top: 2.25rem;
+    padding-bottom: 2.25rem;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  }
+
+  .marquee-track {
+    display: flex;
+    gap: 1.75rem;
+    width: max-content;
+    animation: marquee 40s linear infinite;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .badge-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 1.1rem 2rem 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+    shrink: 0;
+  }
+  .badge-card img {
+    image-rendering: pixelated;
+    transition: all 0.3s ease;
+  }
+  .badge-card:hover {
+    transform: scale(1.05);
+    background: rgba(10, 10, 18, 0.85);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 25px rgba(29, 78, 216, 0.45), 0 0 25px rgba(220, 38, 38, 0.45), 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  .badge-card:hover img {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+  }
+
+  /* Circular "holo" frame behind each badge icon */
+  .badge-icon-frame {
+    position: relative;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .badge-icon-frame::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+      rgba(29, 78, 216, 0.75) 0%,
+      #050507 22%,
+      #050507 28%,
+      rgba(220, 38, 38, 0.75) 50%,
+      #050507 72%,
+      #050507 78%,
+      rgba(29, 78, 216, 0.75) 100%
+    );
+    animation: spin-holo 6s linear infinite;
+    z-index: -1;
+  }
+  @keyframes spin-holo {
+    to { transform: rotate(360deg); }
+  }
+  .badge-icon-frame img {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    image-rendering: pixelated;
+    transition: all 0.3s ease;
+  }
+  .badge-card:hover .badge-icon-frame img {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.9));
+  }
+
+  /* ============================================================
+     GYM DETAIL MODAL
+     ============================================================ */
+  .gym-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.65);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .gym-modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .gym-modal {
+    position: relative;
+    width: 100%;
+    max-width: 28rem;
+    background: rgba(12, 12, 20, 0.85);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    padding: 2rem;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.65), 0 0 40px rgba(29, 78, 216, 0.15);
+    transform: scale(0.92) translateY(12px);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  }
+  .gym-modal-backdrop.open .gym-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  .gym-modal-close {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .gym-modal-close:hover {
+    background: rgba(255, 255, 255, 0.14);
+    transform: rotate(90deg);
+  }
+  .type-pill {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Mobile nav dropdown */
+  #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.35s ease; opacity: 0; }
+  #mobile-menu.open { max-height: 520px; opacity: 1; margin-top: 0.5rem; }
+
+  /* ============================================================
+     3D COVERFLOW CAROUSEL UI
+     ============================================================ */
+  .coverflow-stage {
+    perspective: 1000px;
+    perspective-origin: 50% 50%;
+  }
+
+  .coverflow-track {
+    position: relative;
+    width: 100%;
+    max-width: 920px;
+    height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-style: preserve-3d;
+  }
+
+  .coverflow-card {
+    position: absolute;
+    width: 270px;
+    height: 360px;
+    background: rgba(255, 255, 255, 0.03);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    will-change: transform, opacity;
+  }
+
+  @media (min-width: 640px) {
+    .coverflow-card {
+      width: 330px;
+      height: 420px;
+    }
+    .coverflow-track {
+      height: 440px;
+    }
+  }
+
+  .coverflow-card:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: -8px 0 24px rgba(29, 78, 216, 0.65), 8px 0 24px rgba(220, 38, 38, 0.65);
+  }
+
+  .coverflow-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    background: rgba(10, 10, 18, 0.75);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 40;
+  }
+  .coverflow-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: -6px 0 18px rgba(29, 78, 216, 0.7), 6px 0 18px rgba(220, 38, 38, 0.7);
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .coverflow-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .coverflow-dot.active {
+    width: 2rem;
+    background: #ffffff;
+    box-shadow: -4px 0 12px rgba(29, 78, 216, 0.8), 4px 0 12px rgba(220, 38, 38, 0.8);
+  }
+
+  /* ============================================================
+     FEATURE DETAIL MODAL
+     ============================================================ */
+  .feature-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .feature-modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .feature-modal {
+    position: relative;
+    width: 100%;
+    max-width: 50rem;
+    background: rgba(10, 10, 18, 0.88);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    padding: 2rem;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+  }
+  .feature-modal-backdrop.open .feature-modal {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+
+  .feature-modal-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+  }
+  .feature-modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: -6px 0 16px rgba(29, 78, 216, 0.75), 6px 0 16px rgba(220, 38, 38, 0.75);
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  .scale-in { animation: scaleIn 0.6s ease both; }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ============================================================
+     LANGUAGE ENTRY OVERLAY
+     ============================================================ */
+  .lang-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #050507;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lang-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .lang-modal {
+    background: rgba(255, 255, 255, 0.03);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 2.5rem 2rem;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  }
+
+  .lang-btn {
+    background:
+      linear-gradient(#0a0a14, #0a0a14) padding-box,
+      linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.12)) border-box;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 1.1rem 1.5rem;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .lang-btn:hover {
+    transform: scale(1.05);
+    background:
+      linear-gradient(#07070d, #07070d) padding-box,
+      linear-gradient(135deg, #1d4ed8 0%, #dc2626 100%) border-box;
+    border: 2px solid transparent;
+    box-shadow: 0 0 25px rgba(29, 78, 216, 0.55), 0 0 25px rgba(220, 38, 38, 0.55), 0 14px 35px rgba(0, 0, 0, 0.6);
+  }
+
+  ::selection { background: rgba(29, 78, 216, 0.4); color: #ffffff; }
+
+  /* ============================================================
+     LUMYBOT CHAT WIDGET
+     ============================================================ */
+  .lumybot-window {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 200;
+    width: min(380px, calc(100vw - 2rem));
+    height: min(560px, calc(100vh - 3rem));
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 40px rgba(29, 78, 216, 0.12);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.92) translateY(16px);
+    pointer-events: none;
+    transform-origin: bottom right;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+  }
+  .lumybot-window.open {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+  }
+  @media (max-width: 640px) {
+    /* On phones the floating card becomes a full-width bottom drawer instead of a shrunk
+       box — more room for text, and it reads as a natural mobile chat sheet instead of a
+       cramped popover. dvh (with a vh fallback for older WebKit) accounts for the
+       address bar collapsing/expanding as the user scrolls. */
+    .lumybot-window {
+      right: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: min(85vh, 640px);
+      height: min(85dvh, 640px);
+      border-radius: 20px 20px 0 0;
+      transform-origin: bottom center;
+    }
+  }
+
+  .lumybot-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    flex-shrink: 0;
+  }
+  .lumybot-close {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .lumybot-close:hover {
+    background: rgba(255, 255, 255, 0.14);
+    transform: rotate(90deg);
+  }
+
+  .lumybot-messages {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .lumybot-msg {
+    max-width: 85%;
+    padding: 0.65rem 0.95rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    word-wrap: break-word;
+  }
+  .lumybot-msg.bot {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom-left-radius: 4px;
+    color: #ffffff;
+  }
+  .lumybot-msg.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, rgba(29, 78, 216, 0.55), rgba(220, 38, 38, 0.55));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom-right-radius: 4px;
+    color: #ffffff;
+  }
+  .lumybot-msg.error {
+    align-self: flex-start;
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-bottom-left-radius: 4px;
+    color: #ffffff;
+  }
+
+  /* Rendered Markdown inside bot bubbles — override default browser spacing/markers
+     so paragraphs and bullet lists sit tightly and match the widget's look. */
+  .lumybot-msg p { margin: 0 0 0.5em 0; }
+  .lumybot-msg p:last-child { margin-bottom: 0; }
+  .lumybot-msg ul {
+    margin: 0.35em 0;
+    padding-left: 1.1em;
+    list-style: none;
+  }
+  .lumybot-msg ul:last-child { margin-bottom: 0; }
+  .lumybot-msg ul li {
+    position: relative;
+    margin-bottom: 0.35em;
+    padding-left: 0.85em;
+  }
+  .lumybot-msg ul li:last-child { margin-bottom: 0; }
+  .lumybot-msg ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1d4ed8, #dc2626);
+  }
+  .lumybot-msg strong { color: #ffffff; font-weight: 800; }
+
+  /* Typing indicator — three dots bouncing in sequence */
+  .lumybot-typing {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .lumybot-typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    animation: lumybot-bounce 1.2s ease-in-out infinite;
+  }
+  .lumybot-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .lumybot-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes lumybot-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .lumybot-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    flex-shrink: 0;
+  }
+  .lumybot-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 0.6rem 1rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .lumybot-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+  .lumybot-input:focus {
+    border-color: rgba(29, 78, 216, 0.6);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .lumybot-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .lumybot-send {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1d4ed8, #dc2626);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .lumybot-send:hover:not(:disabled) {
+    transform: scale(1.08);
+    box-shadow: 0 0 16px rgba(29, 78, 216, 0.5), 0 0 16px rgba(220, 38, 38, 0.4);
+  }
+  .lumybot-send:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  @media (max-width: 640px) {
+    /* 16px stops iOS Safari from force-zooming the page when the input gains focus —
+       anything smaller than 16px triggers it. */
+    .lumybot-input {
+      font-size: 16px;
+      padding: 0.7rem 1rem;
+    }
+    /* Bump close/send to the ~44px minimum recommended touch-target size (they're 32px/40px
+       on desktop, where a mouse cursor doesn't need the extra margin for a clean tap). */
+    .lumybot-close {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+    .lumybot-send {
+      width: 2.75rem;
+      height: 2.75rem;
+      flex-shrink: 0;
+    }
+    .lumybot-input-row {
+      padding: 0.75rem;
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+</style>
+</head>
+<body class="antialiased">
+
+  <!-- ================= Language Entry Overlay ================= -->
+  <div id="lang-overlay" class="lang-overlay" role="dialog" aria-modal="true" aria-labelledby="lang-overlay-title">
+    <div class="lang-modal animate-fade-in">
+      <!-- Logo Branding -->
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <img src="public/Cobbleverse_Logo.png" alt="COBBLEVERSE logo" class="w-12 h-12 object-contain" />
+        <span class="nav-wordmark text-2xl font-extrabold tracking-tight">COBBLEVERSE</span>
+      </div>
+
+      <!-- Header Title -->
+      <h2 id="lang-overlay-title" class="text-xl sm:text-2xl font-extrabold text-purewhite mb-2 leading-snug">
+        Select Language / Seleziona la Lingua
+      </h2>
+      <p class="text-xs sm:text-sm text-purewhite/70 mb-8 font-semibold">
+        Choose your preferred language to enter the realm
+      </p>
+
+      <!-- Language Buttons Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button id="lang-btn-en" class="lang-btn" data-lang="en" aria-label="Select English">
+          <span class="text-xl">🇬🇧</span> English
+        </button>
+        <button id="lang-btn-it" class="lang-btn" data-lang="it" aria-label="Seleziona Italiano">
+          <span class="text-xl">🇮🇹</span> Italiano
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= Pure-CSS Animated Cyber Void Background ================= -->
+  <div class="bg-void" aria-hidden="true">
+    <div class="orb orb-cyber-a"></div>
+    <div class="orb orb-cyber-b"></div>
+    <div class="orb orb-cyber-c"></div>
+  </div>
+
+  <!-- ================= Top Navigation (Airy Dark Glass Floating Pill) ================= -->
+  <header class="fixed top-0 inset-x-0 z-50 flex flex-col items-center px-3 sm:px-4">
+    <nav class="glass-nav mt-3 sm:mt-4 w-full max-w-6xl rounded-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 xl:gap-6 overflow-hidden">
+      <a href="#top" class="flex items-center gap-2 sm:gap-2.5 font-extrabold text-lg sm:text-xl tracking-tight shrink-0 nav-link">
+        <img src="public/Cobbleverse_Logo.png" alt="COBBLEVERSE logo" class="h-8 sm:h-9 w-8 sm:w-9 object-contain" />
+        <span class="nav-wordmark">COBBLEVERSE</span>
+      </a>
+
+      <!-- Desktop Section Links -->
+      <div class="hidden lg:flex flex-1 items-center justify-evenly px-4 xl:px-8 text-xs xl:text-sm font-medium whitespace-nowrap">
+        <a href="#overview" class="nav-item" data-i18n="nav_features">Features</a>
+        <a href="#downloads" class="nav-item" data-i18n="nav_downloads">Downloads</a>
+        <a href="javascript:void(0)" class="nav-item lumybot-trigger" data-i18n="nav_lumybot">LumyBot</a>
+        <a href="#wiki" class="nav-item" data-i18n="nav_wiki">Wiki & Docs</a>
+        <a href="#about" class="nav-item" data-i18n="nav_about">About</a>
+        <a href="#community" class="nav-item" data-i18n="nav_community">Community</a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2 sm:gap-3 shrink-0">
+        <a href="https://discord.lumy.fun/" target="_blank" rel="noopener" class="btn-glass !py-1.5 !px-3.5 xl:!px-4 text-xs xl:text-sm" data-i18n="nav_discord">Discord</a>
+        <a href="#downloads" class="btn-glass btn-primary !py-1.5 !px-3.5 xl:!px-4.5 text-xs xl:text-sm whitespace-nowrap" data-i18n="nav_download_now">Download</a>
+      </div>
+
+      <button id="menu-toggle" class="lg:hidden text-purewhite p-2 shrink-0" aria-label="Toggle menu">
+        <svg id="icon-open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        <svg id="icon-close" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </nav>
+
+    <!-- Mobile Drawer -->
+    <div id="mobile-menu" class="lg:hidden glass w-full max-w-4xl overflow-hidden">
+      <div class="flex flex-col gap-3 px-6 py-5 text-purewhite text-base font-medium">
+        <a href="#overview" class="py-1 nav-item" data-i18n="nav_features">Features</a>
+        <a href="#downloads" class="py-1 nav-item" data-i18n="nav_downloads">Downloads</a>
+        <a href="javascript:void(0)" class="py-1 nav-item lumybot-trigger" data-i18n="nav_lumybot">LumyBot</a>
+        <a href="#wiki" class="py-1 nav-item" data-i18n="nav_wiki">Wiki & Docs</a>
+        <a href="#about" class="py-1 nav-item" data-i18n="nav_about">About</a>
+        <a href="#community" class="py-1 nav-item" data-i18n="nav_community">Community</a>
+        <div class="pt-2 flex flex-col gap-2">
+          <a href="https://discord.lumy.fun/" target="_blank" rel="noopener" class="btn-glass text-center" data-i18n="nav_discord">Discord</a>
+          <a href="#downloads" class="btn-glass btn-primary text-center" data-i18n="hero_btn_download">Download Now</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ================= 1. Hero Section ================= -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center text-center pt-28 pb-16 px-6 max-w-4xl mx-auto">
+      <div class="scale-in flex flex-col items-center">
+        <img src="public/Cobbleverse_Logo.png" alt="COBBLEVERSE logo" class="h-16 sm:h-20 w-16 sm:w-20 object-contain mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+        
+        <span class="inline-flex items-center gap-2.5 glass px-4 py-2 text-xs sm:text-sm font-semibold tracking-wide text-purewhite/90 mb-8">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span data-i18n="hero_pill">A Minecraft modpack in active development</span>
+        </span>
+
+        <h1 class="text-purewhite text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight mb-6" data-i18n="hero_title">
+          Explore. Discover.<br />
+          Ascend.
+        </h1>
+
+        <p class="text-base sm:text-lg lg:text-xl text-purewhite/80 mb-10 max-w-2xl leading-relaxed" data-i18n="hero_subtitle">
+          Welcome to COBBLEVERSE! Built with love by a passionate two-person team, this modpack takes the classic Cobblemon experience to a whole new level. We&rsquo;ve blended catching your favorite companions with a truly rewarding world of exploration. As you adventure, you'll discover hand-crafted hidden structures, uncover unique ritual altars, and take on exciting Gym Battles to earn custom regional badges. Whether you're playing solo or exploring with friends, COBBLEVERSE is a welcoming, ever-evolving world where there's always something fresh to discover. Jump in and start your journey!
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4">
+          <a href="#downloads" class="btn-glass btn-primary !py-3 !px-7 text-base sm:text-lg" data-i18n="hero_btn_download">
+            Download Now
+          </a>
+          <a href="https://discord.lumy.fun/" target="_blank" rel="noopener" class="btn-glass !py-3 !px-7 text-base sm:text-lg" data-i18n="hero_btn_discord">
+            Join the Discord
+          </a>
+        </div>
+
+        <div class="flex items-center gap-8 sm:gap-12 mt-12 text-purewhite/70 text-xs sm:text-sm">
+          <div>
+            <p class="text-xl sm:text-2xl font-bold text-purewhite" data-i18n="hero_stat_1_val">Solo & Multiplayer</p>
+            <span data-i18n="hero_stat_1_sub">play your way</span>
+          </div>
+          <div class="w-px h-10 bg-purewhite/15"></div>
+          <div>
+            <p class="text-xl sm:text-2xl font-bold text-purewhite" data-i18n="hero_stat_2_val">Actively Developed</p>
+            <span data-i18n="hero_stat_2_sub">new content regularly</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Gym Badge Scroller Ribbon ================= -->
+    <section class="w-full py-10 badge-ribbon my-6">
+      <div class="max-w-6xl mx-auto px-6 mb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-purewhite flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shadow-[0_0_8px_#34d399]"></span>
+            <span data-i18n="gym_badge_title">Regional Gym Badges</span>
+          </h2>
+          <p class="text-purewhite/70 text-xs sm:text-sm mt-1" data-i18n="gym_badge_subtitle">Conquer regional gyms, earn custom badges, and prove your prowess across the world</p>
+        </div>
+        <span class="text-xs font-semibold tracking-wider text-purewhite/50 uppercase" data-i18n="gym_badge_click">Click a badge to inspect</span>
+      </div>
+
+      <div class="marquee-wrapper">
+        <div class="marquee-track" id="marquee-track">
+          <!-- Set 1 -->
+          <div class="badge-card" data-gym-index="0" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Brock_Kanto_Rock.png" alt="Boulder Badge" decoding="async" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Brock</p><p class="text-sm text-purewhite/60 font-semibold">Boulder Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="1" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Misty_Kanto_Water.png" alt="Cascade Badge" decoding="async" style="transform: translate(-5.4%, -1.6%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Misty</p><p class="text-sm text-purewhite/60 font-semibold">Cascade Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="2" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Valerio_Johto_Flying.png" alt="Zephyr Badge" decoding="async" style="transform: translate(-4.6%, -5.7%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Valerio</p><p class="text-sm text-purewhite/60 font-semibold">Zephyr Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="3" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Raffaello_Johto_Bug.png" alt="Hive Badge" decoding="async" style="transform: translate(0%, -6.5%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Raffaello</p><p class="text-sm text-purewhite/60 font-semibold">Hive Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="4" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Petra_Hoenn_Rock.png" alt="Stone Badge" decoding="async" style="transform: translate(-4%, -6.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Petra</p><p class="text-sm text-purewhite/60 font-semibold">Stone Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="5" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Rudi_Hoenn_Fighting.png" alt="Knuckle Badge" decoding="async" style="transform: translate(-7.4%, -7.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Rudi</p><p class="text-sm text-purewhite/60 font-semibold">Knuckle Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="6" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Pedro_Sinnoh_Rock.png" alt="Coal Badge" decoding="async" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Pedro</p><p class="text-sm text-purewhite/60 font-semibold">Coal Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="7" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Gardenia_Sinnoh_Grass.png" alt="Forest Badge" decoding="async" style="transform: translate(3.4%, -3.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Gardenia</p><p class="text-sm text-purewhite/60 font-semibold">Forest Badge</p></div>
+          </div>
+
+          <!-- Set 2 (Infinite Loop Copy) -->
+          <div class="badge-card" data-gym-index="0" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Brock_Kanto_Rock.png" alt="Boulder Badge" decoding="async" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Brock</p><p class="text-sm text-purewhite/60 font-semibold">Boulder Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="1" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Misty_Kanto_Water.png" alt="Cascade Badge" decoding="async" style="transform: translate(-5.4%, -1.6%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Misty</p><p class="text-sm text-purewhite/60 font-semibold">Cascade Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="2" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Valerio_Johto_Flying.png" alt="Zephyr Badge" decoding="async" style="transform: translate(-4.6%, -5.7%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Valerio</p><p class="text-sm text-purewhite/60 font-semibold">Zephyr Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="3" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Raffaello_Johto_Bug.png" alt="Hive Badge" decoding="async" style="transform: translate(0%, -6.5%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Raffaello</p><p class="text-sm text-purewhite/60 font-semibold">Hive Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="4" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Petra_Hoenn_Rock.png" alt="Stone Badge" decoding="async" style="transform: translate(-4%, -6.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Petra</p><p class="text-sm text-purewhite/60 font-semibold">Stone Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="5" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Rudi_Hoenn_Fighting.png" alt="Knuckle Badge" decoding="async" style="transform: translate(-7.4%, -7.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Rudi</p><p class="text-sm text-purewhite/60 font-semibold">Knuckle Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="6" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Pedro_Sinnoh_Rock.png" alt="Coal Badge" decoding="async" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Pedro</p><p class="text-sm text-purewhite/60 font-semibold">Coal Badge</p></div>
+          </div>
+          <div class="badge-card" data-gym-index="7" role="button" tabindex="0" aria-haspopup="dialog">
+            <div class="badge-icon-frame"><img src="public/Gardenia_Sinnoh_Grass.png" alt="Forest Badge" decoding="async" style="transform: translate(3.4%, -3.4%)" /></div>
+            <div><p class="text-lg font-bold text-purewhite">Gardenia</p><p class="text-sm text-purewhite/60 font-semibold">Forest Badge</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Gym Detail Modal (opens on badge click) ================= -->
+    <div id="gym-modal-backdrop" class="gym-modal-backdrop" aria-hidden="true">
+      <div class="gym-modal" role="dialog" aria-modal="true" aria-labelledby="gym-modal-leader">
+        <button id="gym-modal-close" class="gym-modal-close" aria-label="Close">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <div class="flex items-center gap-5 mb-6">
+          <div class="badge-icon-frame" style="width:4.5rem;height:4.5rem;">
+            <img id="gym-modal-img" src="" alt="" style="width:3rem;height:3rem;" />
+          </div>
+          <div>
+            <p id="gym-modal-region" class="text-xs font-semibold tracking-widest uppercase text-purewhite/50 mb-1"></p>
+            <h3 id="gym-modal-leader" class="text-2xl font-extrabold text-purewhite"></h3>
+          </div>
+        </div>
+        <dl class="grid grid-cols-2 gap-4">
+          <div class="glass-card !p-4">
+            <dt class="text-xs uppercase tracking-wide text-purewhite/50 font-semibold mb-1">Type</dt>
+            <dd id="gym-modal-type" class="type-pill"></dd>
+          </div>
+          <div class="glass-card !p-4">
+            <dt class="text-xs uppercase tracking-wide text-purewhite/50 font-semibold mb-1">Gym Badge</dt>
+            <dd id="gym-modal-badge" class="text-purewhite font-bold"></dd>
+          </div>
+          <div class="glass-card !p-4">
+            <dt class="text-xs uppercase tracking-wide text-purewhite/50 font-semibold mb-1">Gym Location</dt>
+            <dd id="gym-modal-location" class="text-purewhite font-bold"></dd>
+          </div>
+          <div class="glass-card !p-4">
+            <dt class="text-xs uppercase tracking-wide text-purewhite/50 font-semibold mb-1">Item to Spawn</dt>
+            <dd id="gym-modal-item" class="text-purewhite font-bold"></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <!-- ================= 2. Unique Features Overview Grid & 3D Gallery ================= -->
+    <section id="overview" class="pt-16 pb-6 px-6 max-w-6xl mx-auto relative">
+      <!-- Unified Section Header -->
+      <div class="text-center mb-12">
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-purewhite tracking-tight" data-i18n="features_title">
+          Unique Features
+        </h2>
+      </div>
+
+      <!-- 4-Card Features Overview Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Card 1 -->
+        <div class="glass-card p-8 flex flex-col justify-start text-left">
+          <h3 class="text-xl sm:text-2xl font-extrabold text-purewhite mb-3 tracking-wide" data-i18n="feature_1_title">
+            Hunt Legends, Don't Wait For Them
+          </h3>
+          <p class="text-purewhite/80 text-base leading-relaxed font-normal" data-i18n="feature_1_desc">
+            Legendary encounters aren't just random, lucky spawns. You will need to craft specialized tracking tools, follow the clues, and conquer epic boss battles to earn your mythical encounters.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="glass-card p-8 flex flex-col justify-start text-left">
+          <h3 class="text-xl sm:text-2xl font-extrabold text-purewhite mb-3 tracking-wide" data-i18n="feature_2_title">
+            Exclusive Transformations
+          </h3>
+          <p class="text-purewhite/80 text-base leading-relaxed font-normal" data-i18n="feature_2_desc">
+            Take your team to the next level with brand-new, custom Mega Evolutions for fan-favorite companions that you won't find in any standard game.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="glass-card p-8 flex flex-col justify-start text-left">
+          <h3 class="text-xl sm:text-2xl font-extrabold text-purewhite mb-3 tracking-wide" data-i18n="feature_3_title">
+            Hand-Crafted Worlds
+          </h3>
+          <p class="text-purewhite/80 text-base leading-relaxed font-normal" data-i18n="feature_3_desc">
+            Immerse yourself in a universe packed with deep lore, rich custom dimensions, and bespoke Gyms. Whether you are navigating the terrors of a lucid nightmare realm or testing your skills in uniquely designed Gym structures, every location tells a story.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="glass-card p-8 flex flex-col justify-start text-left">
+          <h3 class="text-xl sm:text-2xl font-extrabold text-purewhite mb-3 tracking-wide" data-i18n="feature_4_title">
+            A Meaningful Journey, Better Together
+          </h3>
+          <p class="text-purewhite/80 text-base leading-relaxed font-normal" data-i18n="feature_4_desc">
+            Forget burning out in a single weekend. With a structured Gym Challenge and tier-based progression, every milestone matters. Form a squad, build bases, and take down massive Boss Raids together!
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3D Coverflow Showcase ================= -->
+    <section id="coverflow-gallery" class="py-6 px-4 max-w-7xl mx-auto overflow-hidden relative">
+
+      <!-- 3D Carousel Stage -->
+      <div class="relative w-full py-6 flex items-center justify-center min-h-[460px] sm:min-h-[520px] coverflow-stage">
+        
+        <!-- Nav Arrow Left -->
+        <button id="coverflow-prev" class="coverflow-nav-btn left-2 sm:left-6 z-30" aria-label="Previous Feature">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+
+        <!-- Coverflow Container -->
+        <div id="coverflow-track" class="coverflow-track"></div>
+
+        <!-- Nav Arrow Right -->
+        <button id="coverflow-next" class="coverflow-nav-btn right-2 sm:right-6 z-30" aria-label="Next Feature">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      <!-- Pagination Dots -->
+      <div id="coverflow-dots" class="flex items-center justify-center gap-2.5 mt-6"></div>
+    </section>
+
+    <!-- ================= Feature Detail Modal ================= -->
+    <div id="feature-modal-backdrop" class="feature-modal-backdrop" aria-hidden="true">
+      <div class="feature-modal" role="dialog" aria-modal="true" aria-labelledby="feature-modal-title">
+        <button id="feature-modal-close" class="feature-modal-close" aria-label="Close Modal">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          <!-- Left / Top: Image -->
+          <div class="rounded-2xl overflow-hidden bg-black/40 border border-white/10 relative min-h-[240px] md:min-h-[340px] flex items-center justify-center">
+            <img id="feature-modal-img" src="" alt="" class="w-full h-full object-cover" />
+            <span id="feature-modal-category" class="absolute top-3 left-3 glass px-3 py-1 text-xs font-bold uppercase tracking-wider text-purewhite"></span>
+          </div>
+          <!-- Right / Bottom: Content -->
+          <div class="flex flex-col justify-between text-left p-1">
+            <div>
+              <h3 id="feature-modal-title" class="text-2xl sm:text-3xl font-extrabold text-purewhite mb-3"></h3>
+              <p id="feature-modal-desc" class="text-purewhite/85 text-base sm:text-lg leading-relaxed mb-6"></p>
+            </div>
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/10">
+              <div class="glass-card !p-3.5 flex flex-col text-left justify-center">
+                <dt class="text-[11px] uppercase tracking-widest text-purewhite/50 font-bold mb-1" data-i18n="modal_mechanic_label">Special Mechanic</dt>
+                <dd id="feature-modal-mechanic" class="text-sm font-bold text-purewhite leading-snug"></dd>
+              </div>
+              <div class="glass-card !p-3.5 flex flex-col text-left justify-center">
+                <dt class="text-[11px] uppercase tracking-widest text-purewhite/50 font-bold mb-1" data-i18n="modal_location_label">World Location</dt>
+                <dd id="feature-modal-location" class="text-sm font-bold text-purewhite leading-snug"></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 3. Download & Version Hub ================= -->
+    <section id="downloads" class="py-20 px-6 max-w-4xl mx-auto text-center">
+      <div class="glass p-10 sm:p-14 rounded-3xl">
+        <span id="version-badge" class="inline-flex items-center gap-2.5 glass px-4 py-2 text-xs sm:text-sm font-semibold text-purewhite/90 mb-6">
+          <span id="version-dot" class="w-2 h-2 rounded-full bg-purewhite/40"></span>
+          <span id="version-text" data-i18n="version_checking">Checking Modrinth for the latest release…</span>
+        </span>
+
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-purewhite mb-6" data-i18n="dl_title">Download & Start Your Journey</h2>
+        <p class="text-base sm:text-lg text-purewhite/75 max-w-xl mx-auto mb-10" data-i18n="dl_subtitle">
+          Get COBBLEVERSE on your favorite mod launcher with one click. Simple installation for singleplayer and multiplayer.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <!-- Modrinth Card -->
+          <div class="glass-card card-modrinth p-6 flex flex-col items-center justify-between text-center">
+            <div>
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 mx-auto drop-shadow-[0_0_10px_rgba(16,185,129,0.4)]">
+                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12.252.004a11.78 11.768 0 0 0-8.92 3.73 11 10.999 0 0 0-2.17 3.11 11.37 11.359 0 0 0-1.16 5.169c0 1.42.17 2.5.6 3.77.24.759.77 1.899 1.17 2.529a12.3 12.298 0 0 0 8.85 5.639c.44.05 2.54.07 2.76.02.2-.04.22.1-.26-1.7l-.36-1.37-1.01-.06a8.5 8.489 0 0 1-5.18-1.8 5.34 5.34 0 0 1-1.3-1.26c0-.05.34-.28.74-.5a37.572 37.545 0 0 1 2.88-1.629c.03 0 .5.45 1.06.98l1 .97 2.07-.43 2.06-.43 1.47-1.47c.8-.8 1.48-1.5 1.48-1.52 0-.09-.42-1.63-.46-1.7-.04-.06-.2-.03-1.02.18-.53.13-1.2.3-1.45.4l-.48.15-.53.53-.53.53-.93.1-.93.07-.52-.5a2.7 2.7 0 0 1-.96-1.7l-.13-.6.43-.57c.68-.9.68-.9 1.46-1.1.4-.1.65-.2.83-.33.13-.099.65-.579 1.14-1.069l.9-.9-.7-.7-.7-.7-1.95.54c-1.07.3-1.96.53-1.97.53-.03 0-2.23 2.48-2.63 2.97l-.29.35.28 1.03c.16.56.3 1.16.31 1.34l.03.3-.34.23c-.37.23-2.22 1.3-2.84 1.63-.36.2-.37.2-.44.1-.08-.1-.23-.6-.32-1.03-.18-.86-.17-2.75.02-3.73a8.84 8.839 0 0 1 7.9-6.93c.43-.03.77-.08.78-.1.06-.17.5-2.999.47-3.039-.01-.02-.1-.02-.2-.03Zm3.68.67c-.2 0-.3.1-.37.38-.06.23-.46 2.42-.46 2.52 0 .04.1.11.22.16a8.51 8.499 0 0 1 2.99 2 8.38 8.379 0 0 1 2.16 3.449 6.9 6.9 0 0 1 .4 2.8c0 1.07 0 1.27-.1 1.73a9.37 9.369 0 0 1-1.76 3.769c-.32.4-.98 1.06-1.37 1.38-.38.32-1.54 1.1-1.7 1.14-.1.03-.1.06-.07.26.03.18.64 2.56.7 2.78l.06.06a12.07 12.058 0 0 0 7.27-9.4c.13-.77.13-2.58 0-3.4a11.96 11.948 0 0 0-5.73-8.578c-.7-.42-2.05-1.06-2.25-1.06Z"/></svg>
+              </div>
+              <h3 class="text-xl font-bold text-purewhite mb-1">Modrinth</h3>
+              <p class="text-xs text-purewhite/60 mb-6 font-semibold" data-i18n="dl_modrinth_desc">Fast updates & light download</p>
+            </div>
+            <a href="https://modrinth.com/modpack/cobbleverse" target="_blank" rel="noopener" class="btn-glass btn-primary w-full !py-3 text-base" data-i18n="dl_modrinth_btn">
+              Download on Modrinth
+            </a>
+          </div>
+
+          <!-- CurseForge Card -->
+          <div class="glass-card card-curseforge p-6 flex flex-col items-center justify-between text-center">
+            <div>
+              <div class="w-12 h-12 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center mb-4 mx-auto drop-shadow-[0_0_10px_rgba(249,115,22,0.4)]">
+                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M18.326 9.2145S23.2261 8.4418 24 6.1882h-7.5066V4.4H0l2.0318 2.3576V9.173s5.1267-.2665 7.1098 1.2372c2.7146 2.516-3.053 5.917-3.053 5.917L5.0995 19.6c1.5465-1.4726 4.494-3.3775 9.8983-3.2857-2.0565.65-4.1245 1.6651-5.7344 3.2857h10.9248l-1.0288-3.2726s-7.918-4.6688-.8336-7.1127z"/></svg>
+              </div>
+              <h3 class="text-xl font-bold text-purewhite mb-1">CurseForge</h3>
+              <p class="text-xs text-purewhite/60 mb-6 font-semibold" data-i18n="dl_curseforge_desc">One-click app installation</p>
+            </div>
+            <a href="https://www.curseforge.com/minecraft/modpacks/cobbleverse-cobblemon" target="_blank" rel="noopener" class="btn-glass btn-primary w-full !py-3 text-base" data-i18n="dl_curseforge_btn">
+              Download on CurseForge
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= 5. Wiki & Documentation Hub ================= -->
+    <section id="wiki" class="py-20 px-6 max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-purewhite mb-4" data-i18n="wiki_title">Wiki & Documentation Hub</h2>
+        <p class="text-base sm:text-lg text-purewhite/75 max-w-2xl mx-auto" data-i18n="wiki_subtitle">
+          Need help getting started or looking up entity spawns? Explore our official guides and technical wiki.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Resource 1 -->
+        <div class="glass-card card-wiki p-8 flex flex-col justify-between items-start text-left">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl mb-5">📘</div>
+            <h3 class="text-2xl font-bold text-purewhite mb-2" data-i18n="wiki_guides_title">Tutorials & Guides</h3>
+            <p class="text-purewhite/75 text-base leading-relaxed mb-6" data-i18n="wiki_guides_desc">
+              Step-by-step guides covering altar activation, starter tips, badge progression, and recommended server setups.
+            </p>
+          </div>
+          <a href="https://www.lumyverse.com/cobbleverse" target="_blank" rel="noopener" class="btn-glass !py-2.5 !px-6 text-sm font-semibold" data-i18n="wiki_guides_btn">
+            Visit Guides (lumyverse.com)
+          </a>
+        </div>
+
+        <!-- Resource 2 -->
+        <div class="glass-card card-wiki p-8 flex flex-col justify-between items-start text-left">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl mb-5">📚</div>
+            <h3 class="text-2xl font-bold text-purewhite mb-2" data-i18n="wiki_tech_title">Technical Wiki</h3>
+            <p class="text-purewhite/75 text-base leading-relaxed mb-6" data-i18n="wiki_tech_desc">
+              Complete game database detailing spawn locations, mount rates, altar recipes, and item data.
+            </p>
+          </div>
+          <a href="https://cobbleverse.wiki/" target="_blank" rel="noopener" class="btn-glass !py-2.5 !px-6 text-sm font-semibold" data-i18n="wiki_tech_btn">
+            Explore Technical Wiki (cobbleverse.wiki)
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 6. About Us ================= -->
+    <section id="about" class="py-20 px-6 max-w-4xl mx-auto">
+      <div class="glass p-10 sm:p-12 text-left">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center p-1.5 overflow-hidden">
+            <img src="public/lumyverse-logo.png" alt="Lumyverse logo" class="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-purewhite" data-i18n="about_title">About the Devs</h2>
+        </div>
+
+        <p class="text-lg text-purewhite/85 leading-relaxed" data-i18n="about_p1">
+          Welcome to LUMYVERSE! What started as a way to bridge a 760-kilometer gap in a long-distance relationship quickly blossomed into a vibrant, global home for gamers. Created by EL (Luca) and Mary, LUMYVERSE is built on one fundamental idea: being together. EL, a lifelong gamer with a passion for creative projects and making people smile, and Mary, a fiercely competitive co-op enthusiast who tackles life with the energy of a volcano ready to erupt, joined forces to build this unique virtual space. Here, players are never just numbers—they are friends sharing in the fun, learning new things, and celebrating unforgettable victories side by side.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================= 7. Community & Support ================= -->
+    <section id="community" class="py-20 px-6 max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-purewhite mb-4" data-i18n="comm_title">Join Our Community & Support</h2>
+        <p class="text-base sm:text-lg text-purewhite/75 max-w-2xl mx-auto" data-i18n="comm_subtitle">
+          Connect with thousands of players, get help with your server, or reach out directly to our team.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Community Card -->
+        <div class="glass-card p-8 flex flex-col justify-between items-start text-left">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center mb-5">
+              <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-purewhite mb-2" data-i18n="comm_discord_title">Discord Server</h3>
+            <p class="text-purewhite/75 text-base leading-relaxed mb-6" data-i18n="comm_discord_desc">
+              Join our active Discord community to chat with players, share builds, report bugs, and stay tuned for patch notes.
+            </p>
+          </div>
+          <a href="https://discord.lumy.fun/" target="_blank" rel="noopener" class="btn-glass btn-primary !py-2.5 !px-6 text-sm" data-i18n="comm_discord_btn">
+            Join Official Discord
+          </a>
+        </div>
+
+        <!-- Contact Support Card -->
+        <div class="glass-card p-8 flex flex-col justify-between items-start text-left">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-2xl mb-5">✉️</div>
+            <h3 class="text-2xl font-bold text-purewhite mb-2" data-i18n="comm_contact_title">Contact & Support</h3>
+            <p class="text-purewhite/75 text-base leading-relaxed mb-6" data-i18n="comm_contact_desc">
+              Have questions, business inquiries, or need support? Reach out via our official contact form.
+            </p>
+          </div>
+          <a href="https://www.lumyverse.com/contatti" target="_blank" rel="noopener" class="btn-glass !py-2.5 !px-6 text-sm font-semibold" data-i18n="comm_contact_btn">
+            Contact Form (lumyverse.com)
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 8. Social Links, Footer & Developer Credits ================= -->
+  <footer class="py-14 px-6 border-t border-white/10 bg-black/40 backdrop-blur-md text-center">
+    <div class="max-w-5xl mx-auto flex flex-col items-center gap-8">
+      
+      <!-- Social Media Links -->
+      <div class="flex items-center justify-center gap-6">
+        <!-- TikTok -->
+        <a href="https://www.tiktok.com/@lumyverse" target="_blank" rel="noopener" aria-label="TikTok" class="w-10 h-10 rounded-full glass flex items-center justify-center text-purewhite hover:scale-110 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 1 1-5.2-1.74 2.89 2.89 0 0 1 2.31-1.39v-3.5a6.37 6.37 0 1 0 6.34 6.34V9.32a8.28 8.28 0 0 0 4.77 1.47V7.34a4.85 4.85 0 0 1-1-.65z"/></svg>
+        </a>
+        <!-- YouTube -->
+        <a href="https://www.youtube.com/LUMYVERSE" target="_blank" rel="noopener" aria-label="YouTube" class="w-10 h-10 rounded-full glass flex items-center justify-center text-purewhite hover:scale-110 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <!-- Twitch -->
+        <a href="https://www.twitch.tv/lumyverse" target="_blank" rel="noopener" aria-label="Twitch" class="w-10 h-10 rounded-full glass flex items-center justify-center text-purewhite hover:scale-110 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143h-1.715zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        </a>
+        <!-- Instagram -->
+        <a href="https://www.instagram.com/lumy.verse" target="_blank" rel="noopener" aria-label="Instagram" class="w-10 h-10 rounded-full glass flex items-center justify-center text-purewhite hover:scale-110 transition-transform">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </a>
+      </div>
+
+      <div class="text-xs sm:text-sm text-purewhite/60 max-w-2xl leading-relaxed">
+        <p class="mb-2" data-i18n="footer_disclaimer">COBBLEVERSE is an independent custom Minecraft modpack. Not an official Minecraft or Mojang product. Not associated with Nintendo or Microsoft.</p>
+        <p data-i18n="footer_copy">&copy; 2026 LUMYVERSE. All rights reserved.</p>
+      </div>
+
+      <!-- Developer Credits Badge -->
+      <div class="inline-flex items-center gap-2 glass px-5 py-2.5 text-xs sm:text-sm font-semibold text-purewhite/90">
+        <span data-i18n="footer_dev_credits">Developed by <strong class="text-purewhite">Harshith VNS Redrouthu</strong> and <strong class="text-purewhite">Sai Ochir</strong></span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ================= LumyBot Chat Widget ================= -->
+  <div id="lumybot-window" class="lumybot-window" role="dialog" aria-modal="false" aria-labelledby="lumybot-title">
+    <div class="lumybot-header">
+      <div class="flex items-center gap-2.5">
+        <img src="public/Cobbleverse_Logo.png" alt="" class="h-7 w-7 object-contain" />
+        <div>
+          <p id="lumybot-title" class="text-sm font-extrabold text-purewhite leading-tight">LumyBot</p>
+          <p class="text-[11px] text-purewhite/50 leading-tight">Cobbleverse Guide AI</p>
+        </div>
+      </div>
+      <button id="lumybot-close" class="lumybot-close" aria-label="Close chat">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <div id="lumybot-messages" class="lumybot-messages"></div>
+
+    <div class="lumybot-input-row">
+      <input id="lumybot-input" class="lumybot-input" type="text" placeholder="Ask about Cobbleverse…" maxlength="500" autocomplete="off" />
+      <button id="lumybot-send" class="lumybot-send" aria-label="Send message">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Gym Badge Scroller: data + rendering + click-to-expand modal ----------
+    const GYM_DATA = [
+      { leader: 'Brock',     region: 'Kanto',  type: 'Rock',    badge: 'Boulder Badge', location: 'Plains',           item: 'Onyx Stone',      img: 'public/Brock_Kanto_Rock.png' },
+      { leader: 'Misty',     region: 'Kanto',  type: 'Water',   badge: 'Cascade Badge', location: 'Lukewarm Ocean',   item: 'Cerulean Star',   img: 'public/Misty_Kanto_Water.png' },
+      { leader: 'Valerio',   region: 'Johto',  type: 'Flying',  badge: 'Zephyr Badge',  location: 'Windswept Hills',  item: 'Raptor Bracer',   img: 'public/Valerio_Johto_Flying.png' },
+      { leader: 'Raffaello', region: 'Johto',  type: 'Bug',     badge: 'Hive Badge',    location: 'Sparse Jungle',    item: 'Magnifying Glass',img: 'public/Raffaello_Johto_Bug.png' },
+      { leader: 'Petra',     region: 'Hoenn',  type: 'Rock',    badge: 'Stone Badge',   location: 'Rocky Mountains',  item: 'Rock Tome',       img: 'public/Petra_Hoenn_Rock.png' },
+      { leader: 'Rudi',      region: 'Hoenn',  type: 'Fighting',badge: 'Knuckle Badge', location: 'Yosemite Cliffs',  item: 'Fighting Glove',  img: 'public/Rudi_Hoenn_Fighting.png' },
+      { leader: 'Pedro',     region: 'Sinnoh', type: 'Rock',    badge: 'Coal Badge',    location: 'Volcanic Peaks',   item: 'Rock Casque',     img: 'public/Pedro_Sinnoh_Rock.png' },
+      { leader: 'Gardenia',  region: 'Sinnoh', type: 'Grass',   badge: 'Forest Badge',  location: 'Blooming Valley',  item: 'Grass Aroma',     img: 'public/Gardenia_Sinnoh_Grass.png' },
+    ];
+
+    const TYPE_COLORS = {
+      Rock:     { bg: 'rgba(168, 148, 116, 0.25)', fg: '#d6c7a8' },
+      Water:    { bg: 'rgba(56, 189, 248, 0.22)',  fg: '#7dd3fc' },
+      Flying:   { bg: 'rgba(129, 140, 248, 0.22)', fg: '#a5b4fc' },
+      Bug:      { bg: 'rgba(163, 230, 53, 0.2)',   fg: '#bef264' },
+      Fighting: { bg: 'rgba(234, 88, 12, 0.22)',   fg: '#fdba74' },
+      Grass:    { bg: 'rgba(74, 222, 128, 0.2)',   fg: '#86efac' },
+    };
+
+    const ICON_OFFSETS = {
+      Petra:    { x: -4.0, y: -6.4 },
+      Rudi:     { x: -7.4, y: -7.4 },
+      Misty:    { x: -5.4, y: -1.6 },
+      Valerio:  { x: -4.6, y: -5.7 },
+      Raffaello:{ x: 0,    y: -6.5 },
+      Gardenia: { x: 3.4,  y: -3.4 },
+    };
+
+    function loadGymBadges() {
+      const track = document.getElementById('marquee-track');
+      const backdrop = document.getElementById('gym-modal-backdrop');
+      const closeBtn = document.getElementById('gym-modal-close');
+
+      function openGymModal(gym) {
+        const modalImg = document.getElementById('gym-modal-img');
+        modalImg.src = gym.img;
+        modalImg.alt = gym.badge;
+        const o = ICON_OFFSETS[gym.leader];
+        modalImg.style.transform = o ? `translate(${o.x}%, ${o.y}%)` : '';
+        document.getElementById('gym-modal-region').textContent = `${gym.region} Region`;
+        document.getElementById('gym-modal-leader').textContent = `${gym.leader}'s Gym`;
+        const typeEl = document.getElementById('gym-modal-type');
+        typeEl.textContent = gym.type;
+        const colors = TYPE_COLORS[gym.type] || { bg: 'rgba(255,255,255,0.1)', fg: '#fff' };
+        typeEl.style.background = colors.bg;
+        typeEl.style.color = colors.fg;
+        document.getElementById('gym-modal-badge').textContent = gym.badge;
+        document.getElementById('gym-modal-location').textContent = gym.location;
+        document.getElementById('gym-modal-item').textContent = gym.item;
+
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+        document.getElementById('marquee-track').style.animationPlayState = 'paused';
+      }
+
+      function closeGymModal() {
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+        document.getElementById('marquee-track').style.animationPlayState = '';
+      }
+
+      track.querySelectorAll('.badge-card').forEach(card => {
+        const gym = GYM_DATA[Number(card.dataset.gymIndex)];
+        card.addEventListener('click', () => openGymModal(gym));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openGymModal(gym); }
+        });
+      });
+
+      closeBtn.addEventListener('click', closeGymModal);
+      backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeGymModal(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGymModal(); });
+    }
+    loadGymBadges();
+
+    // ---------- 3D Coverflow Carousel & Feature Detail Modal ----------
+    const FEATURES_3D_DATA = [
+      {
+        id: 1,
+        title: 'Origin Hall',
+        category: 'Legendary Structure',
+        image: 'public/Arceus_LegendaryStructure_Gallery.jpg',
+        location: 'Origin Hall',
+        mechanic: 'Call on the God of Cobblemon',
+        description: 'A timeless dimension accessed only via the Azure Flute. Recover all 18 hidden Plates to evoke the Almighty Sinnoh. Guarded by the ancient protectors of Hisui.'
+      },
+      {
+        id: 2,
+        title: 'The Eternatus Cocoon',
+        category: 'Legendary Structure',
+        image: 'public/EternatusCocoon_LegendaryStrucure_Gallery.jpg',
+        location: 'The End',
+        mechanic: 'Call upon the bringer of the Darkest Day',
+        description: 'Bring forth the bringer of the darkest day and challenge him to have a legendary battle'
+      },
+      {
+        id: 3,
+        title: "Ash's House",
+        category: 'Custom Structure',
+        image: 'public/AshHome_CustomStructure_Gallery.jpg',
+        location: 'Plains Biome',
+        mechanic: 'Challenge Ash to a battle',
+        description: 'Found in the Plains biome. Defeat Ash’s mom for a bounty of treats, or challenge Ash himself to a battle to earn his iconic hat.'
+      },
+      {
+        id: 4,
+        title: 'Fullmoon Isle',
+        category: 'Custom Structure',
+        image: 'public/Cressellia_CustomStructure_Gallery.jpg',
+        location: 'Lukewarm Ocean',
+        mechanic: 'Call upon the Lunar Cobblemon',
+        description: 'Located in the Lukewarm Ocean. This sanctuary collects the beautiful dreams of its guests, crystallizing them into silver light to summon Cresselia for her divine blessing once every century.'
+      },
+      {
+        id: 5,
+        title: 'The Distortion Realm',
+        category: 'Custom Dimension',
+        image: 'public/DistortionWorld_CustomDimensions_Gallery.jpg',
+        location: 'Distortion World',
+        mechanic: 'Bring out the ruler of the Distortion World',
+        description: 'A surreal dimension where gravity shifts dynamically. Navigate floating island puzzles to battle shadow variants and uncover the Griseous Core.'
+      },
+      {
+        id: 6,
+        title: 'Nightmare Dimension',
+        category: 'Custom Dimension',
+        image: 'public/NightmareDimension_CustomDimensions_Gallery.jpg',
+        location: 'Nightmare Dimension',
+        mechanic: 'Call upon the Nightmare Bringer',
+        description: 'The dark mirror to Fullmoon Island. Falling asleep while holding a Moonlight Amulet teleports you here—a lucid, waking nightmare where you must face the darkness head-on.'
+      },
+      {
+        id: 7,
+        title: 'Elite Four Tower',
+        category: 'Gym Structure',
+        image: 'public/KantoEliteFour_GymStructure_Gallery.jpg',
+        location: 'The End',
+        mechanic: 'Challenge the Kanto Elite Four',
+        description: 'The final challenge of champions. This ominous tower resides in The End dimension, waiting for a true Pokémon Master.'
+      },
+      {
+        id: 8,
+        title: 'Sinnoh League',
+        category: 'Gym Structure',
+        image: 'public/SinnohEliteFour_GymStructure_Gallery.jpg',
+        location: 'Desert Oasis',
+        mechanic: 'Challenge the Sinnoh League',
+        description: 'An ultimate competitive gauntlet situated deep within a Desert Oasis. Prove your worth against the best.'
+      },
+      {
+        id: 9,
+        title: 'Megaroid Crash Site',
+        category: 'Megaroid Site',
+        image: 'public/Megastones_CustomMegaSites_Gallery.jpg',
+        location: 'Anywhere',
+        mechanic: 'Raw Megastone and Keystones',
+        description: 'A mysterious impact crater emitting strange cosmic energy...'
+      }
+    ];
+
+    // Preload all gallery images in browser cache immediately
+    FEATURES_3D_DATA.forEach(item => {
+      if (item.image) {
+        const img = new Image();
+        img.src = item.image;
+      }
+    });
+
+    let currentCoverflowIndex = 0;
+
+    function init3DCoverflow() {
+      const track = document.getElementById('coverflow-track');
+      const dotsContainer = document.getElementById('coverflow-dots');
+      const prevBtn = document.getElementById('coverflow-prev');
+      const nextBtn = document.getElementById('coverflow-next');
+      const backdrop = document.getElementById('feature-modal-backdrop');
+      const closeBtn = document.getElementById('feature-modal-close');
+
+      if (!track) return;
+
+      track.innerHTML = '';
+      dotsContainer.innerHTML = '';
+
+      FEATURES_3D_DATA.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'coverflow-card';
+        card.dataset.index = index;
+        card.innerHTML = `
+          <div class="h-3/5 w-full overflow-hidden relative">
+            <img src="${item.image}" alt="${item.title}" loading="eager" fetchpriority="high" decoding="async" class="w-full h-full object-cover" />
+            <span class="absolute top-3 left-3 glass px-3 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-purewhite">${item.category}</span>
+          </div>
+          <div class="p-5 flex flex-col justify-between h-2/5 text-left bg-black/40">
+            <div>
+              <h3 class="text-lg sm:text-xl font-bold text-purewhite truncate">${item.title}</h3>
+              <p class="text-xs text-purewhite/70 mt-1 line-clamp-2">${item.description}</p>
+            </div>
+            <div class="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+              <span class="text-[11px] text-purewhite/50 uppercase font-semibold">Click to inspect</span>
+              <span class="text-xs font-bold text-emerald-400">View Feature &rarr;</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          if (currentCoverflowIndex === index) {
+            openFeatureModal(item);
+          } else {
+            currentCoverflowIndex = index;
+            updateCoverflowPositions();
+          }
+        });
+
+        track.appendChild(card);
+
+        const dot = document.createElement('button');
+        dot.className = `coverflow-dot ${index === 0 ? 'active' : ''}`;
+        dot.ariaLabel = `Go to feature slide ${index + 1}`;
+        dot.addEventListener('click', () => {
+          currentCoverflowIndex = index;
+          updateCoverflowPositions();
+        });
+        dotsContainer.appendChild(dot);
+      });
+
+      function updateCoverflowPositions() {
+        const cards = track.querySelectorAll('.coverflow-card');
+        const dots = dotsContainer.querySelectorAll('.coverflow-dot');
+        const isMobile = window.innerWidth < 640;
+        const N = FEATURES_3D_DATA.length;
+
+        cards.forEach((card, index) => {
+          let diff = index - currentCoverflowIndex;
+          if (diff > N / 2) diff -= N;
+          if (diff < -N / 2) diff += N;
+
+          if (diff === 0) {
+            card.style.transform = `translateX(0px) translateZ(100px) scale(1) rotateY(0deg)`;
+            card.style.opacity = '1';
+            card.style.zIndex = '20';
+            card.style.pointerEvents = 'auto';
+          } else if (diff === -1) {
+            const spacing = isMobile ? -140 : -250;
+            card.style.transform = `translateX(${spacing}px) translateZ(-60px) scale(0.82) rotateY(25deg)`;
+            card.style.opacity = '0.7';
+            card.style.zIndex = '10';
+            card.style.pointerEvents = 'auto';
+          } else if (diff === 1) {
+            const spacing = isMobile ? 140 : 250;
+            card.style.transform = `translateX(${spacing}px) translateZ(-60px) scale(0.82) rotateY(-25deg)`;
+            card.style.opacity = '0.7';
+            card.style.zIndex = '10';
+            card.style.pointerEvents = 'auto';
+          } else if (diff === -2) {
+            const spacing = isMobile ? -230 : -440;
+            card.style.transform = `translateX(${spacing}px) translateZ(-160px) scale(0.66) rotateY(40deg)`;
+            card.style.opacity = '0.35';
+            card.style.zIndex = '5';
+            card.style.pointerEvents = 'auto';
+          } else if (diff === 2) {
+            const spacing = isMobile ? 230 : 440;
+            card.style.transform = `translateX(${spacing}px) translateZ(-160px) scale(0.66) rotateY(-40deg)`;
+            card.style.opacity = '0.35';
+            card.style.zIndex = '5';
+            card.style.pointerEvents = 'auto';
+          } else {
+            const dir = diff > 0 ? 600 : -600;
+            card.style.transform = `translateX(${dir}px) translateZ(-300px) scale(0.5)`;
+            card.style.opacity = '0';
+            card.style.zIndex = '0';
+            card.style.pointerEvents = 'none';
+          }
+        });
+
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('active', index === currentCoverflowIndex);
+        });
+      }
+
+      function openFeatureModal(item) {
+        document.getElementById('feature-modal-img').src = item.image;
+        document.getElementById('feature-modal-img').alt = item.title;
+        document.getElementById('feature-modal-category').textContent = item.category;
+        document.getElementById('feature-modal-title').textContent = item.title;
+        document.getElementById('feature-modal-desc').textContent = item.description;
+        document.getElementById('feature-modal-mechanic').textContent = item.mechanic;
+        document.getElementById('feature-modal-location').textContent = item.location;
+
+        backdrop.classList.add('open');
+        backdrop.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeFeatureModal() {
+        backdrop.classList.remove('open');
+        backdrop.setAttribute('aria-hidden', 'true');
+      }
+
+      prevBtn.addEventListener('click', () => {
+        currentCoverflowIndex = (currentCoverflowIndex - 1 + FEATURES_3D_DATA.length) % FEATURES_3D_DATA.length;
+        updateCoverflowPositions();
+      });
+
+      nextBtn.addEventListener('click', () => {
+        currentCoverflowIndex = (currentCoverflowIndex + 1) % FEATURES_3D_DATA.length;
+        updateCoverflowPositions();
+      });
+
+      closeBtn.addEventListener('click', closeFeatureModal);
+      backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeFeatureModal(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && backdrop.classList.contains('open')) closeFeatureModal();
+        if (e.key === 'ArrowLeft') {
+          currentCoverflowIndex = (currentCoverflowIndex - 1 + FEATURES_3D_DATA.length) % FEATURES_3D_DATA.length;
+          updateCoverflowPositions();
+        }
+        if (e.key === 'ArrowRight') {
+          currentCoverflowIndex = (currentCoverflowIndex + 1) % FEATURES_3D_DATA.length;
+          updateCoverflowPositions();
+        }
+      });
+
+      window.updateCoverflowPositions = updateCoverflowPositions;
+      window.addEventListener('resize', updateCoverflowPositions);
+      updateCoverflowPositions();
+    }
+    init3DCoverflow();
+
+    // ---------- i18n Translation System (English & Italian) ----------
+    const translations = {
+      en: {
+        nav_features: "Features",
+        nav_downloads: "Downloads",
+        nav_lumybot: "LumyBot",
+        nav_wiki: "Wiki & Docs",
+        nav_about: "About",
+        nav_community: "Community",
+        nav_discord: "Discord",
+        nav_download_now: "Download",
+        hero_btn_download: "Download Now",
+
+        hero_pill: "A Minecraft modpack in active development",
+        hero_title: "Explore. Discover. Ascend.",
+        hero_subtitle: "Welcome to COBBLEVERSE! Built with love by a passionate two-person team, this modpack takes the classic Cobblemon experience to a whole new level. We’ve blended catching your favorite companions with a truly rewarding world of exploration. As you adventure, you'll discover hand-crafted hidden structures, uncover unique ritual altars, and take on exciting Gym Battles to earn custom regional badges. Whether you're playing solo or exploring with friends, COBBLEVERSE is a welcoming, ever-evolving world where there's always something fresh to discover. Jump in and start your journey!",
+        hero_btn_discord: "Join the Discord",
+        hero_stat_1_val: "Solo & Multiplayer",
+        hero_stat_1_sub: "play your way",
+        hero_stat_2_val: "Actively Developed",
+        hero_stat_2_sub: "new content regularly",
+
+        gym_badge_title: "Regional Gym Badges",
+        gym_badge_subtitle: "Conquer regional gyms, earn custom badges, and prove your prowess across the world",
+        gym_badge_click: "Click a badge to inspect",
+
+        features_title: "Unique Features",
+        feature_1_title: "Hunt Legends, Don't Wait For Them",
+        feature_1_desc: "Legendary encounters aren't just random, lucky spawns. You will need to craft specialized tracking tools, follow the clues, and conquer epic boss battles to earn your mythical encounters.",
+        feature_2_title: "Exclusive Transformations",
+        feature_2_desc: "Take your team to the next level with brand-new, custom Mega Evolutions for fan-favorite companions that you won't find in any standard game.",
+        feature_3_title: "Hand-Crafted Worlds",
+        feature_3_desc: "Immerse yourself in a universe packed with deep lore, rich custom dimensions, and bespoke Gyms. Whether you are navigating the terrors of a lucid nightmare realm or testing your skills in uniquely designed Gym structures, every location tells a story.",
+        feature_4_title: "A Meaningful Journey, Better Together",
+        feature_4_desc: "Forget burning out in a single weekend. With a structured Gym Challenge and tier-based progression, every milestone matters. Form a squad, build bases, and take down massive Boss Raids together!",
+
+        modal_mechanic_label: "Special Mechanic",
+        modal_location_label: "World Location",
+
+        dl_title: "Download & Start Your Journey",
+        dl_subtitle: "Get COBBLEVERSE on your favorite mod launcher with one click. Simple installation for singleplayer and multiplayer.",
+        dl_modrinth_desc: "Fast updates & light download",
+        dl_modrinth_btn: "Download on Modrinth",
+        dl_curseforge_desc: "One-click app installation",
+        dl_curseforge_btn: "Download on CurseForge",
+
+        wiki_title: "Wiki & Documentation Hub",
+        wiki_subtitle: "Need help getting started or looking up entity spawns? Explore our official guides and technical wiki.",
+        wiki_guides_title: "Tutorials & Guides",
+        wiki_guides_desc: "Step-by-step guides covering altar activation, starter tips, badge progression, and recommended server setups.",
+        wiki_guides_btn: "Visit Guides (lumyverse.com)",
+        wiki_tech_title: "Technical Wiki",
+        wiki_tech_desc: "Complete game database detailing spawn locations, mount rates, altar recipes, and item data.",
+        wiki_tech_btn: "Explore Technical Wiki (cobbleverse.wiki)",
+
+        about_title: "About the Devs",
+        about_p1: "Welcome to LUMYVERSE! What started as a way to bridge a 760-kilometer gap in a long-distance relationship quickly blossomed into a vibrant, global home for gamers. Created by EL (Luca) and Mary, LUMYVERSE is built on one fundamental idea: being together. EL, a lifelong gamer with a passion for creative projects and making people smile, and Mary, a fiercely competitive co-op enthusiast who tackles life with the energy of a volcano ready to erupt, joined forces to build this unique virtual space. Here, players are never just numbers—they are friends sharing in the fun, learning new things, and celebrating unforgettable victories side by side.",
+
+        comm_title: "Join Our Community & Support",
+        comm_subtitle: "Connect with thousands of players, get help with your server, or reach out directly to our team.",
+        comm_discord_title: "Discord Server",
+        comm_discord_desc: "Join our active Discord community to chat with players, share builds, report bugs, and stay tuned for patch notes.",
+        comm_discord_btn: "Join Official Discord",
+        comm_contact_title: "Contact & Support",
+        comm_contact_desc: "Have questions, business inquiries, or need support? Reach out via our official contact form.",
+        comm_contact_btn: "Contact Form (lumyverse.com)",
+
+        footer_disclaimer: "COBBLEVERSE is an independent custom Minecraft modpack. Not an official Minecraft or Mojang product. Not associated with Nintendo or Microsoft.",
+        footer_copy: "© 2026 LUMYVERSE. All rights reserved.",
+        footer_dev_credits: "Developed by <strong class=\"text-purewhite\">Harshith VNS Redrouthu</strong> and <strong class=\"text-purewhite\">Sai Ochir</strong>",
+
+        // 3D Coverflow Items Lore
+        f1_title: "Origin Hall",
+        f1_cat: "Legendary Structure",
+        f1_loc: "Origin Hall",
+        f1_mech: "Call on the God of Cobblemon",
+        f1_desc: "A timeless dimension accessed only via the Azure Flute. Recover all 18 hidden Plates to evoke the Almighty Sinnoh. Guarded by the ancient protectors of Hisui.",
+
+        f2_title: "The Eternatus Cocoon",
+        f2_cat: "Legendary Structure",
+        f2_loc: "The End",
+        f2_mech: "Call upon the bringer of the Darkest Day",
+        f2_desc: "Bring forth the bringer of the darkest day and challenge him to have a legendary battle",
+
+        f3_title: "Ash's House",
+        f3_cat: "Custom Structure",
+        f3_loc: "Plains Biome",
+        f3_mech: "Challenge Ash to a battle",
+        f3_desc: "Found in the Plains biome. Defeat Ash’s mom for a bounty of treats, or challenge Ash himself to a battle to earn his iconic hat.",
+
+        f4_title: "Fullmoon Isle",
+        f4_cat: "Custom Structure",
+        f4_loc: "Lukewarm Ocean",
+        f4_mech: "Call upon the Lunar Cobblemon",
+        f4_desc: "Located in the Lukewarm Ocean. This sanctuary collects the beautiful dreams of its guests, crystallizing them into silver light to summon Cresselia for her divine blessing once every century.",
+
+        f5_title: "The Distortion Realm",
+        f5_cat: "Custom Dimension",
+        f5_loc: "Distortion World",
+        f5_mech: "Bring out the ruler of the Distortion World",
+        f5_desc: "A surreal dimension where gravity shifts dynamically. Navigate floating island puzzles to battle shadow variants and uncover the Griseous Core.",
+
+        f6_title: "Nightmare Dimension",
+        f6_cat: "Custom Dimension",
+        f6_loc: "Nightmare Dimension",
+        f6_mech: "Call upon the Nightmare Bringer",
+        f6_desc: "The dark mirror to Fullmoon Island. Falling asleep while holding a Moonlight Amulet teleports you here—a lucid, waking nightmare where you must face the darkness head-on.",
+
+        f7_title: "Elite Four Tower",
+        f7_cat: "Gym Structure",
+        f7_loc: "The End",
+        f7_mech: "Challenge the Kanto Elite Four",
+        f7_desc: "The final challenge of champions. This ominous tower resides in The End dimension, waiting for a true Pokémon Master.",
+
+        f8_title: "Sinnoh League",
+        f8_cat: "Gym Structure",
+        f8_loc: "Desert Oasis",
+        f8_mech: "Challenge the Sinnoh League",
+        f8_desc: "An ultimate competitive gauntlet situated deep within a Desert Oasis. Prove your worth against the best.",
+
+        f9_title: "Megaroid Crash Site",
+        f9_cat: "Megaroid Site",
+        f9_loc: "Anywhere",
+        f9_mech: "Raw Megastone and Keystones",
+        f9_desc: "A mysterious impact crater emitting strange cosmic energy..."
+      },
+      it: {
+        nav_features: "Caratteristiche",
+        nav_downloads: "Download",
+        nav_lumybot: "LumyBot",
+        nav_wiki: "Wiki e Guide",
+        nav_about: "Informazioni",
+        nav_community: "Community",
+        nav_discord: "Discord",
+        nav_download_now: "Scarica",
+        hero_btn_download: "Scarica Ora",
+
+        hero_pill: "Un modpack Minecraft in pieno sviluppo attivo",
+        hero_title: "Esplora. Scopri. Ascendi.",
+        hero_subtitle: "Benvenuto su COBBLEVERSE! Creato con passione da un team di due persone, questo modpack porta la classica esperienza Cobblemon a un livello totalmente nuovo. Abbiamo unito la cattura dei tuoi compagni preferiti a un mondo di esplorazione davvero appagante. Durante la tua avventura scoprirai strutture nascoste create a mano, altari rituali unici e affronterai avvincenti Lotte in Palestra per conquistare medaglie regionali personalizzate. Che tu giochi da solo o con gli amici, COBBLEVERSE è un mondo accogliente e in continua evoluzione. Inizia subito il tuo viaggio!",
+        hero_btn_discord: "Entra nel Discord",
+        hero_stat_1_val: "Singleplayer e Multiplayer",
+        hero_stat_1_sub: "gioca come preferisci",
+        hero_stat_2_val: "Sviluppo Attivo",
+        hero_stat_2_sub: "nuovi contenuti regolari",
+
+        gym_badge_title: "Medaglie delle Palestre Regionali",
+        gym_badge_subtitle: "Conquista le palestre regionali, ottieni medaglie personalizzate e dimostra il tuo valore in tutto il mondo",
+        gym_badge_click: "Clicca su una medaglia per ispezionare",
+
+        features_title: "Caratteristiche Uniche",
+        feature_1_title: "Caccia i Leggendari, Non Aspettarli",
+        feature_1_desc: "Gli incontri leggendari non sono semplici apparizioni casuali. Dovrai creare strumenti di tracciamento specializzati, seguire gli indizi e sconfiggere epiche battaglie boss per guadagnare i tuoi incontri mitici.",
+        feature_2_title: "Trasformazioni Esclusive",
+        feature_2_desc: "Porta la tua squadra al livello successivo con nuovissime Mega Evoluzioni personalizzate per i tuoi compagni preferiti, introvabili in qualsiasi gioco standard.",
+        feature_3_title: "Mondi Creati a Mano",
+        feature_3_desc: "Immergiti in un universo ricco di profonda storia, dimensioni personalizzate e Palestre esclusive. Che tu stia esplorando i terrori di un incubo lucido o mettendo alla prova le tue abilità in Palestre dal design unico, ogni luogo racconta una storia.",
+        feature_4_title: "Un Viaggio Significativo, Meglio Insieme",
+        feature_4_desc: "Dimentica di esaurire il gioco in un solo fine settimana. Con una Sfida delle Palestre strutturata e una progressione a livelli, ogni traguardo conta. Forma una squadra, costruisci basi e sconfiggi epici Boss Raid insieme!",
+
+        modal_mechanic_label: "Meccanica Speciale",
+        modal_location_label: "Luogo del Mondo",
+
+        dl_title: "Scarica e Inizia il Tuo Viaggio",
+        dl_subtitle: "Ottieni COBBLEVERSE sul tuo launcher preferito con un solo click. Installazione semplice per singleplayer and multiplayer.",
+        dl_modrinth_desc: "Aggiornamenti rapidi e download leggero",
+        dl_modrinth_btn: "Scarica su Modrinth",
+        dl_curseforge_desc: "Installazione in un click",
+        dl_curseforge_btn: "Scarica su CurseForge",
+
+        wiki_title: "Centro Wiki e Documentazione",
+        wiki_subtitle: "Hai bisogno di aiuto per iniziare o vuoi consultare la guida alle creature? Esplora le nostre guide ufficiali e la wiki tecnica.",
+        wiki_guides_title: "Tutorial e Guide",
+        wiki_guides_desc: "Guide passo passo su attivazione degli altari, consigli per iniziare, progressione medaglie e configurazione server.",
+        wiki_guides_btn: "Visita le Guide (lumyverse.com)",
+        wiki_tech_title: "Wiki Tecnica",
+        wiki_tech_desc: "Database di gioco completo con luoghi di generazione, tassi di comparsa, ricette rituali e dati sugli oggetti.",
+        wiki_tech_btn: "Esplora la Wiki Tecnica (cobbleverse.wiki)",
+
+        about_title: "Informazioni sugli Sviluppatori",
+        about_p1: "Benvenuti su LUMYVERSE! Ciò che è nato come un modo per colmare una distanza di 760 chilometri in una relazione a distanza si è presto trasformato in una casa globale e vivace per i giocatori. Creato da EL (Luca) e Mary, LUMYVERSE si fonda su un'idea fondamentale: stare insieme. EL, giocatore da sempre con una passione per i progetti creativi e per far sorridere le persone, e Mary, un'appassionata di cooperativa ferocemente competitiva che affronta la vita con l'energia di un vulcano pronto a eruttare, hanno unito le forze per costruire questo spazio virtuale unico. Qui i giocatori non sono mai solo numeri: sono amici che condividono il divertimento, imparano cose nuove e festeggiano vittorie indimenticabili fianco a fianco.",
+
+        comm_title: "Unisciti Alla Nostra Community e Supporto",
+        comm_subtitle: "Connettiti con migliaia di giocatori, ricevi aiuto per il tuo server o contatta direttamente il nostro team.",
+        comm_discord_title: "Server Discord",
+        comm_discord_desc: "Unisciti alla nostra community su Discord per chattare, condividere costruzioni, segnalare bug e rimanere aggiornato sulle novità.",
+        comm_discord_btn: "Entra nel Discord Ufficiale",
+        comm_contact_title: "Contatto e Supporto",
+        comm_contact_desc: "Hai domande, richieste commerciali o bisogno di assistenza? Contattaci tramite il modulo ufficiale.",
+        comm_contact_btn: "Modulo di Contatto (lumyverse.com)",
+
+        footer_disclaimer: "COBBLEVERSE è un modpack indipendente per Minecraft. Non è un prodotto ufficiale Minecraft o Mojang. Non associato a Nintendo o Microsoft.",
+        footer_copy: "© 2026 LUMYVERSE. Tutti i diritti riservati.",
+        footer_dev_credits: "Sviluppato da <strong class=\"text-purewhite\">Harshith VNS Redrouthu</strong> e <strong class=\"text-purewhite\">Sai Ochir</strong>",
+
+        // 3D Coverflow Items Lore
+        f1_title: "Sala dell'Origine",
+        f1_cat: "Struttura Leggendaria",
+        f1_loc: "Sala dell'Origine",
+        f1_mech: "Evoca il Dio dei Cobblemon",
+        f1_desc: "Una dimensione senza tempo a cui si accede solo tramite il Flauto Cielo. Recupera le 18 Lastre nascoste per evocare il Sommo Sinnoh. Custodita dagli antichi protettori di Hisui.",
+
+        f2_title: "Il Bozzolo di Eternatus",
+        f2_cat: "Struttura Leggendaria",
+        f2_loc: "L'End",
+        f2_mech: "Evoca colui che porta la Notte Oscura",
+        f2_desc: "Evoca colui che porta la notte oscura e sfidalo in una battaglia leggendaria",
+
+        f3_title: "Casa di Ash",
+        f3_cat: "Struttura Personalizzata",
+        f3_loc: "Bioma Pianura",
+        f3_mech: "Sfida Ash in una battaglia",
+        f3_desc: "Trovata nel bioma Pianura. Sconfiggi la mamma di Ash per una ricompensa speciale, o sfida Ash in persona per vincere il suo iconico cappello.",
+
+        f4_title: "Isola Lunapiena",
+        f4_cat: "Struttura Personalizzata",
+        f4_loc: "Oceano Tiepido",
+        f4_mech: "Evoca il Cobblemon Lunare",
+        f4_desc: "Situato nell'Oceano Tiepido. Questo santuario raccoglie i sogni dei suoi ospiti, cristallizzandoli in luce d'argento per evocare Cresselia per la sua benedizione divina una volta ogni secolo.",
+
+        f5_title: "Mondo Distorto",
+        f5_cat: "Dimensione Personalizzata",
+        f5_loc: "Mondo Distorto",
+        f5_mech: "Evoca il sovrano del Mondo Distorto",
+        f5_desc: "Una dimensione surreale in cui la gravità cambia dinamicamente. Risolvi enigmi su isole fluttuanti per combattere varianti ombra e scoprire il Nucleo Grigiosfera.",
+
+        f6_title: "Dimensione Incubo",
+        f6_cat: "Dimensione Personalizzata",
+        f6_loc: "Dimensione Incubo",
+        f6_mech: "Evoca colui che porta gli Incubi",
+        f6_desc: "Lo specchio oscuro dell'Isola Lunapiena. Addormentarsi tenendo l'Auleo Lunare ti teletrasporta qui—un incubo ad occhi aperti dove affrontare l'oscurità.",
+
+        f7_title: "Torre dei Superquattro",
+        f7_cat: "Struttura Palestra",
+        f7_loc: "L'End",
+        f7_mech: "Sfida i Superquattro di Kanto",
+        f7_desc: "La sfida finale dei campioni. Questa torre spettrale risiede nella dimensione dell'End, in attesa di un vero Maestro Pokémon.",
+
+        f8_title: "Lega di Sinnoh",
+        f8_cat: "Struttura Palestra",
+        f8_loc: "Oasi del Deserto",
+        f8_mech: "Sfida la Lega di Sinnoh",
+        f8_desc: "Un'arena competitiva suprema situata nel cuore di un'Oasi del Deserto. Dimostra il tuo valore contro i migliori.",
+
+        f9_title: "Sito d'Impatto Megaroide",
+        f9_cat: "Sito Megaroide",
+        f9_loc: "Ovunque",
+        f9_mech: "Megapietre Grezze e Pietre Chiave",
+        f9_desc: "Un misterioso cratere d'impatto che emetta uno strano bagliore cosmico..."
+      }
+    };
+
+    let currentLanguage = 'en';
+
+    function setLanguage(lang) {
+      if (!translations[lang]) return;
+      currentLanguage = lang;
+      window.currentLanguage = lang;
+      
+      try {
+        localStorage.setItem('cobbleverse_lang', lang);
+      } catch (e) {}
+
+      // Update DOM elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang] && translations[lang][key]) {
+          el.innerHTML = translations[lang][key];
+        }
+      });
+
+      // Update FEATURES_3D_DATA array
+      if (typeof FEATURES_3D_DATA !== 'undefined' && Array.isArray(FEATURES_3D_DATA)) {
+        FEATURES_3D_DATA.forEach(item => {
+          const id = item.id;
+          if (translations[lang][`f${id}_title`]) item.title = translations[lang][`f${id}_title`];
+          if (translations[lang][`f${id}_cat`]) item.category = translations[lang][`f${id}_cat`];
+          if (translations[lang][`f${id}_loc`]) item.location = translations[lang][`f${id}_loc`];
+          if (translations[lang][`f${id}_mech`]) item.mechanic = translations[lang][`f${id}_mech`];
+          if (translations[lang][`f${id}_desc`]) item.description = translations[lang][`f${id}_desc`];
+        });
+      }
+
+      // Re-render coverflow card texts in-place without adding duplicate event listeners
+      updateCoverflowCardsText();
+      if (typeof updateCoverflowPositions === 'function') {
+        updateCoverflowPositions();
+      }
+    }
+
+    function updateCoverflowCardsText() {
+      const track = document.getElementById('coverflow-track');
+      if (!track) return;
+      const cards = track.querySelectorAll('.coverflow-card');
+      cards.forEach((card, index) => {
+        const item = FEATURES_3D_DATA[index];
+        if (!item) return;
+        const catSpan = card.querySelector('span.glass');
+        const titleH3 = card.querySelector('h3');
+        const descP = card.querySelector('p');
+        const inspectSpan = card.querySelector('.border-t span:first-child');
+        const viewSpan = card.querySelector('.border-t span:last-child');
+
+        if (catSpan) catSpan.textContent = item.category;
+        if (titleH3) titleH3.textContent = item.title;
+        if (descP) descP.textContent = item.description;
+        if (inspectSpan) inspectSpan.textContent = currentLanguage === 'it' ? 'Clicca per ispezionare' : 'Click to inspect';
+        if (viewSpan) viewSpan.innerHTML = currentLanguage === 'it' ? 'Vedi Dettaglio &rarr;' : 'View Feature &rarr;';
+      });
+    }
+
+    function initLanguageOverlay() {
+      const overlay = document.getElementById('lang-overlay');
+      const btnEn = document.getElementById('lang-btn-en');
+      const btnIt = document.getElementById('lang-btn-it');
+
+      try {
+        const savedLang = localStorage.getItem('cobbleverse_lang');
+        if (savedLang && translations[savedLang]) {
+          setLanguage(savedLang);
+        }
+      } catch (e) {}
+
+      if (!overlay) return;
+
+      function selectLanguage(lang) {
+        try {
+          setLanguage(lang);
+        } catch (err) {
+          console.error("setLanguage error:", err);
+        }
+
+        overlay.classList.add('fade-out');
+        setTimeout(() => {
+          if (overlay && overlay.parentNode) {
+            overlay.remove();
+          }
+        }, 800);
+      }
+
+      if (btnEn) {
+        btnEn.addEventListener('click', () => selectLanguage('en'));
+      }
+      if (btnIt) {
+        btnIt.addEventListener('click', () => selectLanguage('it'));
+      }
+    }
+
+    initLanguageOverlay();
+
+    // ---------- Live version badge (Modrinth API) ----------
+    const MODRINTH_SLUG = 'cobbleverse';
+
+    async function loadLatestModrinthVersion() {
+      const textEl = document.getElementById('version-text');
+      const dotEl = document.getElementById('version-dot');
+      try {
+        const res = await fetch(`https://api.modrinth.com/v2/project/${MODRINTH_SLUG}/version`);
+        if (!res.ok) throw new Error(`Modrinth returned ${res.status}`);
+        const versions = await res.json();
+        if (!Array.isArray(versions) || versions.length === 0) throw new Error('No published versions yet');
+
+        const latest = versions[0];
+        const mcVersion = latest.game_versions?.[latest.game_versions.length - 1] ?? 'unknown';
+        const loaders = latest.loaders?.join('/') ?? '';
+        textEl.textContent = `Latest Release • ${latest.version_number} (Minecraft ${mcVersion}${loaders ? ' ' + loaders : ''})`;
+        dotEl.classList.remove('bg-purewhite/40');
+        dotEl.classList.add('bg-emerald-400', 'animate-pulse');
+      } catch (err) {
+        textEl.textContent = 'Check Modrinth for the latest release';
+      }
+    }
+    loadLatestModrinthVersion();
+
+    // ---------- LumyBot Chat Widget ----------
+    const LUMYBOT_WORKER_URL = 'https://broad-mouse-26d6.harshith-redrouthu21.workers.dev';
+    const LUMYBOT_DAILY_LIMIT = 2; // must match DAILY_LIMIT in worker.js — this is a separate constant, not shared, so keep them in sync manually
+    const LUMYBOT_STORAGE_KEY = 'cobbleverse_lumybot_usage';
+
+    // This is a UX-only convenience layer, NOT real security — it lives in the user's own
+    // browser and can be cleared at will. The Cloudflare Worker's KV-backed limiter is the
+    // actual quota protection; this just avoids letting someone type 6 messages and only
+    // find out about the limit after the 6th round-trip.
+    function getLumybotUsage() {
+      try {
+        const raw = localStorage.getItem(LUMYBOT_STORAGE_KEY);
+        if (!raw) return { count: 0, resetAt: Date.now() + 86400000 };
+        const data = JSON.parse(raw);
+        if (!data.resetAt || Date.now() > data.resetAt) {
+          return { count: 0, resetAt: Date.now() + 86400000 };
+        }
+        return data;
+      } catch (e) {
+        return { count: 0, resetAt: Date.now() + 86400000 };
+      }
+    }
+
+    function setLumybotUsage(usage) {
+      try {
+        localStorage.setItem(LUMYBOT_STORAGE_KEY, JSON.stringify(usage));
+      } catch (e) {}
+    }
+
+    function lumybotLimitReached() {
+      return getLumybotUsage().count >= LUMYBOT_DAILY_LIMIT;
+    }
+
+    // Kicked off once, immediately, so the promise has usually already resolved by the time
+    // the user sends their first message — FingerprintJS.load() takes a moment to run its
+    // signal collection. Falls back to null (IP-only limiting) if the CDN script failed to
+    // load or the browser blocks it, rather than blocking chat entirely.
+    let lumybotFingerprintPromise = null;
+    function getLumybotFingerprint() {
+      if (!lumybotFingerprintPromise) {
+        lumybotFingerprintPromise = (typeof FingerprintJS !== 'undefined')
+          ? FingerprintJS.load().then(fp => fp.get()).then(result => result.visitorId).catch(() => null)
+          : Promise.resolve(null);
+      }
+      return lumybotFingerprintPromise;
+    }
+    getLumybotFingerprint();
+
+    function initLumyBot() {
+      const win = document.getElementById('lumybot-window');
+      const closeBtn = document.getElementById('lumybot-close');
+      const messagesEl = document.getElementById('lumybot-messages');
+      const inputEl = document.getElementById('lumybot-input');
+      const sendBtn = document.getElementById('lumybot-send');
+
+      function refreshInputState() {
+        if (lumybotLimitReached()) {
+          inputEl.disabled = true;
+          sendBtn.disabled = true;
+          inputEl.placeholder = `Daily limit of ${LUMYBOT_DAILY_LIMIT} questions reached. Join our Discord!`;
+        } else {
+          inputEl.disabled = false;
+          sendBtn.disabled = false;
+          inputEl.placeholder = 'Ask about Cobbleverse…';
+        }
+      }
+
+      // Minimal, safe Markdown renderer for bot replies — just bold + bullet lists, which is
+      // all the system prompt asks the AI to produce. HTML-escapes everything FIRST, then only
+      // ever re-introduces tags we generate ourselves, so nothing in the AI's raw text (or a
+      // malicious response, if the API were ever compromised) can inject arbitrary HTML.
+      function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      function renderInlineMarkdown(str) {
+        return str.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      }
+
+      function renderMarkdown(text) {
+        const lines = escapeHtml(text).split('\n');
+        let html = '';
+        let inList = false;
+
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue; // blank lines are just spacing, not a list-ender or a paragraph
+
+          const bulletMatch = line.match(/^[-*]\s+(.*)$/);
+          if (bulletMatch) {
+            if (!inList) { html += '<ul>'; inList = true; }
+            html += `<li>${renderInlineMarkdown(bulletMatch[1])}</li>`;
+            continue;
+          }
+
+          if (inList) { html += '</ul>'; inList = false; }
+          html += `<p>${renderInlineMarkdown(line)}</p>`;
+        }
+        if (inList) html += '</ul>';
+        return html;
+      }
+
+      function appendMessage(sender, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `lumybot-msg ${sender}`;
+        if (sender === 'bot') {
+          bubble.innerHTML = renderMarkdown(text);
+        } else {
+          bubble.textContent = text; // user input and our own error strings never contain markdown
+        }
+        messagesEl.appendChild(bubble);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function showTyping() {
+        const typing = document.createElement('div');
+        typing.className = 'lumybot-typing';
+        typing.id = 'lumybot-typing-indicator';
+        typing.innerHTML = '<span></span><span></span><span></span>';
+        messagesEl.appendChild(typing);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function hideTyping() {
+        const typing = document.getElementById('lumybot-typing-indicator');
+        if (typing) typing.remove();
+      }
+
+      function openWidget() {
+        win.classList.add('open');
+        win.setAttribute('aria-hidden', 'false');
+        refreshInputState();
+        if (!inputEl.disabled) inputEl.focus();
+      }
+
+      function closeWidget() {
+        win.classList.remove('open');
+        win.setAttribute('aria-hidden', 'true');
+      }
+
+      async function handleSend() {
+        const message = inputEl.value.trim();
+        if (!message || inputEl.disabled) return;
+        if (lumybotLimitReached()) {
+          refreshInputState();
+          return;
+        }
+
+        appendMessage('user', message);
+        inputEl.value = '';
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+        showTyping();
+
+        try {
+          const fingerprint = await getLumybotFingerprint();
+          const headers = { 'Content-Type': 'application/json' };
+          if (fingerprint) headers['X-Device-Fingerprint'] = fingerprint;
+
+          const res = await fetch(LUMYBOT_WORKER_URL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ message }),
+          });
+
+          hideTyping();
+
+          if (res.status === 429) {
+            // The worker's KV counter is the real source of truth — sync local usage to
+            // "maxed out" immediately even if this browser's own counter thought it had
+            // questions left (e.g. localStorage was cleared, or a second tab is open).
+            setLumybotUsage({ count: LUMYBOT_DAILY_LIMIT, resetAt: Date.now() + 86400000 });
+            appendMessage('bot', 'Daily limit reached. Try again tomorrow!');
+            return;
+          }
+
+          const data = await res.json().catch(() => ({}));
+
+          if (!res.ok) {
+            appendMessage('error', data.error || 'Something went wrong. Please try again.');
+            return;
+          }
+
+          const usage = getLumybotUsage();
+          usage.count += 1;
+          setLumybotUsage(usage);
+          appendMessage('bot', data.reply);
+        } catch (err) {
+          hideTyping();
+          appendMessage('error', 'Could not reach LumyBot. Check your connection and try again.');
+        } finally {
+          refreshInputState();
+          if (!inputEl.disabled) inputEl.focus();
+        }
+      }
+
+      document.querySelectorAll('.lumybot-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          openWidget();
+        });
+      });
+
+      closeBtn.addEventListener('click', closeWidget);
+      sendBtn.addEventListener('click', handleSend);
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSend();
+      });
+
+      appendMessage('bot', "Hey there, Trainer! I'm LumyBot — ask me anything about Cobbleverse.");
+      refreshInputState();
+    }
+    initLumyBot();
+
+    // ---------- Mobile nav toggle ----------
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('icon-open');
+    const iconClose = document.getElementById('icon-close');
+
+    menuToggle.addEventListener('click', () => {
+      const isOpen = mobileMenu.classList.toggle('open');
+      iconOpen.classList.toggle('hidden', isOpen);
+      iconClose.classList.toggle('hidden', !isOpen);
+    });
+
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.remove('open');
+        iconOpen.classList.remove('hidden');
+        iconClose.classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>

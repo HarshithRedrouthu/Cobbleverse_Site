@@ -1,0 +1,14 @@
+name = "broad-mouse-26d6"
+main = "worker.js"
+compatibility_date = "2026-08-10"
+
+# KV namespace used by the rate limiter (see checkAndIncrementRateLimit in worker.js).
+# This binding is what makes `env.RATE_LIMITER` available inside the Worker — without it,
+# any request that hits the rate-limit check throws an uncaught exception (Cloudflare error 1101).
+[[kv_namespaces]]
+binding = "RATE_LIMITER"
+id = "09aca02c3a05432babf3307d3ce410a8"
+
+# GEMINI_API_KEY is a secret, not a var — it's already set on the deployed Worker via
+# `wrangler secret put GEMINI_API_KEY` (confirmed present, secrets persist across deploys
+# independently of this file). Nothing to declare here; do NOT put the key value in this file.

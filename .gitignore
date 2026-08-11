@@ -1,0 +1,7 @@
+.wrangler/
+.claude/
+node_modules/
+.vercel/
+*.log
+
+.vercel
