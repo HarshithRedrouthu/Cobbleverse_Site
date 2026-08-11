@@ -1,3 +1,4 @@
+// LumyBot Cloudflare Worker Backend
 /**
  * COBBLEVERSE LumyBot — Cloudflare Worker backend
  * ============================================================
