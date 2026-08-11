@@ -1,4 +1,4 @@
-<!-- Cobbleverse Documentation -->
+<!-- Cobbleverse Documentation & Guide -->
 <p align="center">
   <img src="public/Cobbleverse_Logo.png" alt="Cobbleverse logo" width="120" />
 </p>
