@@ -33,15 +33,8 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5
 // visitors' IPs (each gets its own separate 5-question budget against your key). Rate limiting
 // alone doesn't stop that; only a strict origin allowlist does.
 const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5500',
-  'null', // Allows opening index.html directly from your computer files
   'https://cobbleverse-site.vercel.app', // live production site
-  '*'     // NOTE: this does NOT enable wildcard CORS — see corsHeaders() below, it only matches
-          // a request whose literal Origin header is the 1-character string "*", which no real
-          // browser ever sends. Harmless as-is, but if you were expecting "allow everything while
-          // testing" from this line, it isn't doing that. Remove it or see the comment below.
+  'http://localhost:3000'                // local dev testing
 ];
 const BASE_SYSTEM_PROMPT = `You are the Cobbleverse Guide AI. Answer using ONLY the lore and data provided below — never invent facts outside of it.
 
