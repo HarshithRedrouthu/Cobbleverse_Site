@@ -1,5 +1,6 @@
 {
   "name": "broad-mouse-26d6",
+  "description": "LumyBot Worker API",
   "compatibility_date": "2026-08-11",
   "main": "worker.js"
 }
