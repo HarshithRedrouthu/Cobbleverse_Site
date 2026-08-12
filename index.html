@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>COBBLEVERSE</title>
+<title>COBBLEVERSE — Minecraft Cobblemon Modpack</title>
 <link rel="icon" type="image/png" href="public/Cobbleverse_Logo.png" />
 <meta name="description" content="COBBLEVERSE is a Minecraft modpack built around custom mechanics, ritual altars, exploration, and long-term progression. Download on Modrinth or CurseForge." />
 <meta property="og:title" content="COBBLEVERSE" />
@@ -666,6 +666,24 @@
   }
 
   /* ============================================================
+     HERO SECTION
+     ============================================================ */
+  /* clamp() instead of fixed text-5xl/6xl/7xl breakpoints so the headline scales
+     smoothly with viewport width — avoids it jumping straight from a huge desktop
+     size to wrapping across 4-5 lines on narrow phones. */
+  .hero-title {
+    font-size: clamp(2.25rem, 5vw + 1.25rem, 4.75rem);
+  }
+
+  .hero-showcase-img {
+    width: 100%;
+    max-width: 880px;
+    margin-top: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55), 0 0 50px rgba(29, 78, 216, 0.2), 0 0 50px rgba(220, 38, 38, 0.12);
+  }
+
+  /* ============================================================
      LANGUAGE ENTRY OVERLAY
      ============================================================ */
   .lang-overlay {
@@ -994,12 +1012,9 @@
       </div>
 
       <!-- Header Title -->
-      <h2 id="lang-overlay-title" class="text-xl sm:text-2xl font-extrabold text-purewhite mb-2 leading-snug">
-        Select Language / Seleziona la Lingua
+      <h2 id="lang-overlay-title" class="text-xl sm:text-2xl font-extrabold text-purewhite mb-8 leading-snug">
+        Select Language
       </h2>
-      <p class="text-xs sm:text-sm text-purewhite/70 mb-8 font-semibold">
-        Choose your preferred language to enter the realm
-      </p>
 
       <!-- Language Buttons Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1070,20 +1085,16 @@
     <!-- ================= 1. Hero Section ================= -->
     <section class="relative min-h-screen flex flex-col items-center justify-center text-center pt-28 pb-16 px-6 max-w-4xl mx-auto">
       <div class="scale-in flex flex-col items-center">
-        <img src="public/Cobbleverse_Logo.png" alt="COBBLEVERSE logo" class="h-16 sm:h-20 w-16 sm:w-20 object-contain mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
-        
         <span class="inline-flex items-center gap-2.5 glass px-4 py-2 text-xs sm:text-sm font-semibold tracking-wide text-purewhite/90 mb-8">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span data-i18n="hero_pill">A Minecraft modpack in active development</span>
+          <span data-i18n="hero_pill">A Pokémon-inspired Adventure in Minecraft</span>
         </span>
 
-        <h1 class="text-purewhite text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight mb-6" data-i18n="hero_title">
-          Explore. Discover.<br />
-          Ascend.
+        <h1 class="hero-title text-purewhite font-extrabold leading-tight mb-6" data-i18n="hero_title">
+          COBBLEVERSE — Start Your Cobblemon Journey
         </h1>
 
         <p class="text-base sm:text-lg lg:text-xl text-purewhite/80 mb-10 max-w-2xl leading-relaxed" data-i18n="hero_subtitle">
-          Welcome to COBBLEVERSE! Built with love by a passionate two-person team, this modpack takes the classic Cobblemon experience to a whole new level. We&rsquo;ve blended catching your favorite companions with a truly rewarding world of exploration. As you adventure, you'll discover hand-crafted hidden structures, uncover unique ritual altars, and take on exciting Gym Battles to earn custom regional badges. Whether you're playing solo or exploring with friends, COBBLEVERSE is a welcoming, ever-evolving world where there's always something fresh to discover. Jump in and start your journey!
+          Travel across iconic regions, defeat Gym Leaders, and face the Elite Four to become Champion. Discover custom structures and unique altars to summon and catch Legendary & Mythical Pokémon, build your ultimate team, and take charge of your destiny — solo or with friends!
         </p>
 
         <div class="flex flex-wrap justify-center gap-4">
@@ -1106,92 +1117,13 @@
             <span data-i18n="hero_stat_2_sub">new content regularly</span>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ================= Gym Badge Scroller Ribbon ================= -->
-    <section class="w-full py-10 badge-ribbon my-6">
-      <div class="max-w-6xl mx-auto px-6 mb-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <h2 class="text-xl sm:text-2xl font-bold text-purewhite flex items-center gap-3">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shadow-[0_0_8px_#34d399]"></span>
-            <span data-i18n="gym_badge_title">Regional Gym Badges</span>
-          </h2>
-          <p class="text-purewhite/70 text-xs sm:text-sm mt-1" data-i18n="gym_badge_subtitle">Conquer regional gyms, earn custom badges, and prove your prowess across the world</p>
-        </div>
-        <span class="text-xs font-semibold tracking-wider text-purewhite/50 uppercase" data-i18n="gym_badge_click">Click a badge to inspect</span>
-      </div>
-
-      <div class="marquee-wrapper">
-        <div class="marquee-track" id="marquee-track">
-          <!-- Set 1 -->
-          <div class="badge-card" data-gym-index="0" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Brock_Kanto_Rock.png" alt="Boulder Badge" decoding="async" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Brock</p><p class="text-sm text-purewhite/60 font-semibold">Boulder Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="1" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Misty_Kanto_Water.png" alt="Cascade Badge" decoding="async" style="transform: translate(-5.4%, -1.6%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Misty</p><p class="text-sm text-purewhite/60 font-semibold">Cascade Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="2" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Valerio_Johto_Flying.png" alt="Zephyr Badge" decoding="async" style="transform: translate(-4.6%, -5.7%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Valerio</p><p class="text-sm text-purewhite/60 font-semibold">Zephyr Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="3" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Raffaello_Johto_Bug.png" alt="Hive Badge" decoding="async" style="transform: translate(0%, -6.5%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Raffaello</p><p class="text-sm text-purewhite/60 font-semibold">Hive Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="4" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Petra_Hoenn_Rock.png" alt="Stone Badge" decoding="async" style="transform: translate(-4%, -6.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Petra</p><p class="text-sm text-purewhite/60 font-semibold">Stone Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="5" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Rudi_Hoenn_Fighting.png" alt="Knuckle Badge" decoding="async" style="transform: translate(-7.4%, -7.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Rudi</p><p class="text-sm text-purewhite/60 font-semibold">Knuckle Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="6" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Pedro_Sinnoh_Rock.png" alt="Coal Badge" decoding="async" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Pedro</p><p class="text-sm text-purewhite/60 font-semibold">Coal Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="7" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Gardenia_Sinnoh_Grass.png" alt="Forest Badge" decoding="async" style="transform: translate(3.4%, -3.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Gardenia</p><p class="text-sm text-purewhite/60 font-semibold">Forest Badge</p></div>
-          </div>
-
-          <!-- Set 2 (Infinite Loop Copy) -->
-          <div class="badge-card" data-gym-index="0" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Brock_Kanto_Rock.png" alt="Boulder Badge" decoding="async" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Brock</p><p class="text-sm text-purewhite/60 font-semibold">Boulder Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="1" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Misty_Kanto_Water.png" alt="Cascade Badge" decoding="async" style="transform: translate(-5.4%, -1.6%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Misty</p><p class="text-sm text-purewhite/60 font-semibold">Cascade Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="2" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Valerio_Johto_Flying.png" alt="Zephyr Badge" decoding="async" style="transform: translate(-4.6%, -5.7%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Valerio</p><p class="text-sm text-purewhite/60 font-semibold">Zephyr Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="3" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Raffaello_Johto_Bug.png" alt="Hive Badge" decoding="async" style="transform: translate(0%, -6.5%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Raffaello</p><p class="text-sm text-purewhite/60 font-semibold">Hive Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="4" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Petra_Hoenn_Rock.png" alt="Stone Badge" decoding="async" style="transform: translate(-4%, -6.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Petra</p><p class="text-sm text-purewhite/60 font-semibold">Stone Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="5" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Rudi_Hoenn_Fighting.png" alt="Knuckle Badge" decoding="async" style="transform: translate(-7.4%, -7.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Rudi</p><p class="text-sm text-purewhite/60 font-semibold">Knuckle Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="6" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Pedro_Sinnoh_Rock.png" alt="Coal Badge" decoding="async" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Pedro</p><p class="text-sm text-purewhite/60 font-semibold">Coal Badge</p></div>
-          </div>
-          <div class="badge-card" data-gym-index="7" role="button" tabindex="0" aria-haspopup="dialog">
-            <div class="badge-icon-frame"><img src="public/Gardenia_Sinnoh_Grass.png" alt="Forest Badge" decoding="async" style="transform: translate(3.4%, -3.4%)" /></div>
-            <div><p class="text-lg font-bold text-purewhite">Gardenia</p><p class="text-sm text-purewhite/60 font-semibold">Forest Badge</p></div>
-          </div>
-        </div>
+        <!-- Placeholder for the cinematic gameplay screenshot — swap the src for the real image when ready. -->
+        <img
+          src="https://placehold.co/1200x675/13131f/ffffff?text=Cobbleverse+Cinematic+Screenshot"
+          alt="COBBLEVERSE gameplay screenshot"
+          class="hero-showcase-img"
+        />
       </div>
     </section>
 
@@ -1581,6 +1513,7 @@
 
     function loadGymBadges() {
       const track = document.getElementById('marquee-track');
+      if (!track) return; // Gym Badges ribbon is removed for now — nothing to wire up.
       const backdrop = document.getElementById('gym-modal-backdrop');
       const closeBtn = document.getElementById('gym-modal-close');
 
@@ -1891,9 +1824,9 @@
         nav_download_now: "Download",
         hero_btn_download: "Download Now",
 
-        hero_pill: "A Minecraft modpack in active development",
-        hero_title: "Explore. Discover. Ascend.",
-        hero_subtitle: "Welcome to COBBLEVERSE! Built with love by a passionate two-person team, this modpack takes the classic Cobblemon experience to a whole new level. We’ve blended catching your favorite companions with a truly rewarding world of exploration. As you adventure, you'll discover hand-crafted hidden structures, uncover unique ritual altars, and take on exciting Gym Battles to earn custom regional badges. Whether you're playing solo or exploring with friends, COBBLEVERSE is a welcoming, ever-evolving world where there's always something fresh to discover. Jump in and start your journey!",
+        hero_pill: "A Pokémon-inspired Adventure in Minecraft",
+        hero_title: "COBBLEVERSE — Start Your Cobblemon Journey",
+        hero_subtitle: "Travel across iconic regions, defeat Gym Leaders, and face the Elite Four to become Champion. Discover custom structures and unique altars to summon and catch Legendary & Mythical Pokémon, build your ultimate team, and take charge of your destiny — solo or with friends!",
         hero_btn_discord: "Join the Discord",
         hero_stat_1_val: "Solo & Multiplayer",
         hero_stat_1_sub: "play your way",
@@ -2015,9 +1948,9 @@
         nav_download_now: "Scarica",
         hero_btn_download: "Scarica Ora",
 
-        hero_pill: "Un modpack Minecraft in pieno sviluppo attivo",
-        hero_title: "Esplora. Scopri. Ascendi.",
-        hero_subtitle: "Benvenuto su COBBLEVERSE! Creato con passione da un team di due persone, questo modpack porta la classica esperienza Cobblemon a un livello totalmente nuovo. Abbiamo unito la cattura dei tuoi compagni preferiti a un mondo di esplorazione davvero appagante. Durante la tua avventura scoprirai strutture nascoste create a mano, altari rituali unici e affronterai avvincenti Lotte in Palestra per conquistare medaglie regionali personalizzate. Che tu giochi da solo o con gli amici, COBBLEVERSE è un mondo accogliente e in continua evoluzione. Inizia subito il tuo viaggio!",
+        hero_pill: "Un'Avventura Ispirata a Pokémon in Minecraft",
+        hero_title: "COBBLEVERSE — Inizia il Tuo Viaggio Cobblemon",
+        hero_subtitle: "Viaggia attraverso regioni iconiche, sconfiggi i Leader di Palestra e affronta la Superlega per diventare Campione. Scopri strutture personalizzate e altari unici per evocare e catturare Pokémon Leggendari e Misteriosi, costruisci la tua squadra definitiva e prendi in mano il tuo destino — da solo o con gli amici!",
         hero_btn_discord: "Entra nel Discord",
         hero_stat_1_val: "Singleplayer e Multiplayer",
         hero_stat_1_sub: "gioca come preferisci",
