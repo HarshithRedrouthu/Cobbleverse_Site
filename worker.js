@@ -34,8 +34,11 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5
 // visitors' IPs (each gets its own separate 5-question budget against your key). Rate limiting
 // alone doesn't stop that; only a strict origin allowlist does.
 const ALLOWED_ORIGINS = [
-  'https://cobbleverse-site.vercel.app', // live production site
-  'http://localhost:3000'                // local dev testing
+  'https://cobbleverse-site.vercel.app',            // old production alias — currently dead (404), kept in case it's reattached
+  'https://cobbleverse-site-red-4523.vercel.app',   // current live production URL, in use while the custom domain's DNS is pending
+  'https://cobbleverse-site-git-main-red-4523.vercel.app', // git-branch alias, also currently live
+  'https://modpack.lumyverse.com',                  // intended final domain — added ahead of time, not yet resolving
+  'http://localhost:3000'                           // local dev testing
 ];
 const BASE_SYSTEM_PROMPT = `You are the Cobbleverse Guide AI. Answer using ONLY the lore and data provided below — never invent facts outside of it.
 
