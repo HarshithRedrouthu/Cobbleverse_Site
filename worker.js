@@ -25,6 +25,7 @@
 // ---------- Config ----------
 
 const MAX_MESSAGE_LENGTH = 500; // guards against someone burning quota/cost with one giant message
+const MAX_TRANSLATE_LENGTH = 2000; // bot replies are already capped by maxOutputTokens, this is just a sanity ceiling
 const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5-flash-lite both confirmed dead via live 404s from Google's own API — this is their current cheapest/fastest stable model
 
 // No daily question cap anymore — normal users get unlimited questions. Abuse is instead caught
@@ -250,6 +251,46 @@ async function callGemini(env, userMessage) {
   return text;
 }
 
+/**
+ * Translates a bot reply on demand (the "Translate" link under each chat bubble). Reuses the
+ * same Gemini model/key as the main chat call — no new secrets or providers to manage — but with
+ * its own minimal system prompt (translate-only, no spawn lore, no persona) and lower temperature
+ * since literal translation needs to stay close to the source, not get creative.
+ */
+async function translateText(env, text, targetLang) {
+  const langName = targetLang === 'it' ? 'Italian' : 'English';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
+
+  const payload = {
+    systemInstruction: {
+      parts: [{ text: `Translate the user's message into ${langName}. Output ONLY the translation — no notes, no quotation marks, no preamble. Preserve any Markdown formatting (bold, bullet lists) exactly as it appears in the source.` }],
+    },
+    contents: [
+      { role: 'user', parts: [{ text }] },
+    ],
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 400,
+    },
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  const translated = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!translated) throw new Error('Gemini returned no usable text.');
+  return translated;
+}
+
 // ---------- Entry point ----------
 
 export default {
@@ -271,30 +312,56 @@ export default {
       return jsonResponse({ error: 'Invalid JSON body' }, 400, origin);
     }
 
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const fingerprint = sanitizeFingerprint(request.headers.get('X-Device-Fingerprint'));
+
+    // Already in the 24-hour penalty box — reject immediately, no need to run the trigger
+    // checks again or touch Gemini. Applies to both chat and translate requests.
+    if (await isTimedOut(env, ip, fingerprint)) {
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
+    }
+
+    // Trigger A: burst/speed spam. Shared between chat and translate requests — both cost a
+    // real Gemini call, and the point is capping total request volume against your quota, not
+    // just chat volume specifically. Without this, "Translate" would be an easy way to spam the
+    // API without ever tripping the chat-specific triggers below.
+    const ipBurst = await checkBurst(env, `burst:ip:${ip}`);
+    const fpBurst = fingerprint ? await checkBurst(env, `burst:fp:${fingerprint}`) : false;
+    if (ipBurst || fpBurst) {
+      await applyTimeout(env, ip, fingerprint);
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
+    }
+
+    // ---------- Translate action (the "Translate" link under a bot reply) ----------
+    if (body?.action === 'translate') {
+      const text = typeof body?.text === 'string' ? body.text.trim() : '';
+      const targetLang = body?.targetLang === 'it' ? 'it' : body?.targetLang === 'en' ? 'en' : null;
+
+      if (!text) {
+        return jsonResponse({ error: 'Text is required' }, 400, origin);
+      }
+      if (text.length > MAX_TRANSLATE_LENGTH) {
+        return jsonResponse({ error: `Text too long (max ${MAX_TRANSLATE_LENGTH} characters)` }, 400, origin);
+      }
+      if (!targetLang) {
+        return jsonResponse({ error: 'targetLang must be "en" or "it"' }, 400, origin);
+      }
+
+      try {
+        const translated = await translateText(env, text, targetLang);
+        return jsonResponse({ translated }, 200, origin);
+      } catch (err) {
+        return jsonResponse({ error: 'Translation is temporarily unavailable. Please try again shortly.' }, 502, origin);
+      }
+    }
+
+    // ---------- Default action: chat ----------
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
     if (!message) {
       return jsonResponse({ error: 'Message is required' }, 400, origin);
     }
     if (message.length > MAX_MESSAGE_LENGTH) {
       return jsonResponse({ error: `Message too long (max ${MAX_MESSAGE_LENGTH} characters)` }, 400, origin);
-    }
-
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const fingerprint = sanitizeFingerprint(request.headers.get('X-Device-Fingerprint'));
-
-    // Already in the 24-hour penalty box — reject immediately, no need to run the trigger
-    // checks again or touch Gemini.
-    if (await isTimedOut(env, ip, fingerprint)) {
-      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
-    }
-
-    // Trigger A: burst/speed spam (checked — and its timestamp recorded — for both IP and
-    // fingerprint, since either alone hitting the threshold is enough to be abuse).
-    const ipBurst = await checkBurst(env, `burst:ip:${ip}`);
-    const fpBurst = fingerprint ? await checkBurst(env, `burst:fp:${fingerprint}`) : false;
-    if (ipBurst || fpBurst) {
-      await applyTimeout(env, ip, fingerprint);
-      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
     }
 
     // Trigger C: gibberish — cheap, no KV needed, so it's checked before Trigger B.

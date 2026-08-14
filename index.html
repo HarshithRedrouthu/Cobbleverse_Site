@@ -892,6 +892,24 @@
   }
   .lumybot-msg strong { color: #ffffff; font-weight: 800; }
 
+  .lumybot-translate-btn {
+    display: block;
+    margin-top: 0.5em;
+    padding: 0;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+  }
+  .lumybot-translate-btn:hover:not(:disabled) { color: rgba(255, 255, 255, 0.9); }
+  .lumybot-translate-btn:disabled { cursor: default; opacity: 0.6; text-decoration: none; }
+
   /* Typing indicator — three dots bouncing in sequence */
   .lumybot-typing {
     align-self: flex-start;
@@ -2250,11 +2268,94 @@
         return html;
       }
 
+      // Adds the small "Translate" link under a bot reply. Toggles between the original and
+      // translated text client-side once translated (no repeat API call to go back and forth),
+      // and only calls the worker's translate action the first time. Shares the same 24-hour
+      // abuse lock as the main chat send, since a translate call still costs a real Gemini call.
+      function attachTranslateControl(bubble, contentEl, originalText) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'lumybot-translate-btn';
+
+        let translatedText = null;
+        let showingTranslation = false;
+
+        function idleLabel() {
+          if (showingTranslation) {
+            return currentLanguage === 'it' ? '↩ Mostra originale' : '↩ Show original';
+          }
+          return currentLanguage === 'it' ? '🌐 Translate to English' : '🌐 Traduci in italiano';
+        }
+        btn.textContent = idleLabel();
+
+        btn.addEventListener('click', async () => {
+          if (showingTranslation) {
+            showingTranslation = false;
+            contentEl.innerHTML = renderMarkdown(originalText);
+            btn.textContent = idleLabel();
+            return;
+          }
+
+          if (translatedText) {
+            showingTranslation = true;
+            contentEl.innerHTML = renderMarkdown(translatedText);
+            btn.textContent = idleLabel();
+            return;
+          }
+
+          const targetLang = currentLanguage === 'it' ? 'en' : 'it';
+          btn.disabled = true;
+          btn.textContent = currentLanguage === 'it' ? 'Traduzione…' : 'Translating…';
+
+          try {
+            const fingerprint = await getLumybotFingerprint();
+            const headers = { 'Content-Type': 'application/json' };
+            if (fingerprint) headers['X-Device-Fingerprint'] = fingerprint;
+
+            const res = await fetch(LUMYBOT_WORKER_URL, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ action: 'translate', text: originalText, targetLang }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.status === 429 || res.status === 403) {
+              btn.remove();
+              lockInputForAbuse();
+              appendMessage('error', data.error || 'Abusing the bot is not allowed. You can reuse the bot in 24 hours.');
+              return;
+            }
+
+            if (!res.ok || typeof data.translated !== 'string') {
+              btn.disabled = false;
+              btn.textContent = idleLabel();
+              return;
+            }
+
+            translatedText = data.translated;
+            showingTranslation = true;
+            contentEl.innerHTML = renderMarkdown(translatedText);
+            btn.disabled = false;
+            btn.textContent = idleLabel();
+          } catch (err) {
+            btn.disabled = false;
+            btn.textContent = idleLabel();
+          }
+        });
+
+        bubble.appendChild(btn);
+      }
+
       function appendMessage(sender, text) {
         const bubble = document.createElement('div');
         bubble.className = `lumybot-msg ${sender}`;
         if (sender === 'bot') {
-          bubble.innerHTML = renderMarkdown(text);
+          const content = document.createElement('div');
+          content.className = 'lumybot-msg-content';
+          content.innerHTML = renderMarkdown(text);
+          bubble.appendChild(content);
+          attachTranslateControl(bubble, content, text);
         } else {
           bubble.textContent = text; // user input and our own error strings never contain markdown
         }
