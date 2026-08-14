@@ -32,7 +32,7 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5
 // isGibberish below) that drop a user straight into a 24-hour penalty box.
 const TIMEOUT_TTL_SECONDS = 86400; // 24 hours
 const BURST_WINDOW_SECONDS = 60;
-const BURST_MAX_REQUESTS = 5; // more than this many requests inside the window trips the timeout
+const BURST_MAX_REQUESTS = 2; // more than this many requests inside the window trips the timeout — i.e. a 3rd message within 60s trips it
 const DUPLICATE_WINDOW_SECONDS = 90; // how long a message is remembered for exact-duplicate detection
 const ABUSE_MESSAGE = 'Abusing the bot is not allowed. You can reuse the bot in 24 hours.';
 
