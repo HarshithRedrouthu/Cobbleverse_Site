@@ -24,15 +24,24 @@
 
 // ---------- Config ----------
 
-const DAILY_LIMIT = 2; // sized for ~400-500 expected daily users against the free-tier Gemini quota
-const RATE_LIMIT_WINDOW_SECONDS = 86400; // 24 hours
 const MAX_MESSAGE_LENGTH = 500; // guards against someone burning quota/cost with one giant message
 const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5-flash-lite both confirmed dead via live 404s from Google's own API — this is their current cheapest/fastest stable model
 
+// No daily question cap anymore — normal users get unlimited questions. Abuse is instead caught
+// by three triggers (burst speed, exact duplicates, gibberish — see checkBurst/checkDuplicate/
+// isGibberish below) that drop a user straight into a 24-hour penalty box.
+const TIMEOUT_TTL_SECONDS = 86400; // 24 hours
+const BURST_WINDOW_SECONDS = 60;
+const BURST_MAX_REQUESTS = 5; // more than this many requests inside the window trips the timeout
+const DUPLICATE_WINDOW_SECONDS = 90; // how long a message is remembered for exact-duplicate detection
+const ABUSE_MESSAGE = 'Abusing the bot is not allowed. You can reuse the bot in 24 hours.';
+
 // Lock this down to your real production domain(s) before going live — a wildcard "*" here
-// would let ANY website fetch() this worker and burn your free Gemini quota using their own
-// visitors' IPs (each gets its own separate 5-question budget against your key). Rate limiting
-// alone doesn't stop that; only a strict origin allowlist does.
+// would let ANY website fetch() this worker and burn your free Gemini quota through their own
+// visitors, with no per-user question cap to slow them down now that the daily limit is gone.
+// The 24-hour timeout system only catches abusive patterns (burst/duplicate/gibberish); it does
+// nothing to stop a completely different site from embedding this endpoint — only the origin
+// allowlist does that.
 const ALLOWED_ORIGINS = [
   'https://cobbleverse-site.vercel.app',            // old production alias — currently dead (404), kept in case it's reattached
   'https://cobbleverse-site-red-4523.vercel.app',   // current live production URL, in use while the custom domain's DNS is pending
@@ -40,7 +49,7 @@ const ALLOWED_ORIGINS = [
   'https://modpack.lumyverse.com',                  // intended final domain — added ahead of time, not yet resolving
   'http://localhost:3000'                           // local dev testing
 ];
-const BASE_SYSTEM_PROMPT = `You are the Cobbleverse Guide AI. Answer using ONLY the lore and data provided below — never invent facts outside of it.
+const BASE_SYSTEM_PROMPT = `You are the Cobbleverse Guide AI. Your scope, stated plainly: "I can only answer questions regarding spawn locations for non-legendary Pokémon." Answer using ONLY the lore and data provided below — never invent facts outside of it.
 
 Formatting rules, follow exactly:
 - No greetings, introductions, or sign-offs. Never say things like "Great question!", "Happy hunting!", or "Let me know if you need anything else!"
@@ -50,7 +59,7 @@ Formatting rules, follow exactly:
   - **Pokémon Name** — rarity, Lv min-max, biomes (only add time/weather/requirements if they matter)
 - Keep any prose outside the bullets to a single short sentence, or omit it entirely.
 
-If the question falls outside the provided lore/data, reply with one short sentence pointing them to the Discord server. Nothing else.`;
+Refusal rule — applies to ALL of the following: questions about Legendary or Mythical Pokémon (encounters, altars, structures, how to obtain them), general gameplay questions (crafting, mods, server setup, progression, gyms, altars), or anything else off-topic. For any of these, politely refuse by replying with EXACTLY this sentence and nothing else: "I can only answer questions regarding spawn locations for non-legendary Pokémon."`;
 
 // ---------- Spawn data (from Cobblemon Spawns 1.7.3) ----------
 // This is intentionally NOT dumped into the system prompt wholesale — at ~2,200 spawn entries
@@ -147,61 +156,65 @@ function sanitizeFingerprint(raw) {
 }
 
 /**
- * KV has no atomic "increment but keep original TTL" operation, so the counter's own
- * expiry timestamp is stored alongside the count and reapplied as a shrinking TTL on every
- * write. That's what makes this "N requests within 24 hours of the FIRST request" rather
- * than "24 hours from whatever request happened most recently" (which is what you'd get if
- * you just called `put` with a fresh expirationTtl every time).
+ * Checks whether the IP or (if present) the fingerprint is currently sitting in the 24-hour
+ * penalty box. This is a plain existence check — the value doesn't matter, only the TTL.
  */
-async function getRateLimitRecord(env, key) {
-  const now = Date.now();
-  const raw = await env.RATE_LIMITER.get(key);
-  const record = raw ? JSON.parse(raw) : null;
-  if (!record || record.resetAt <= now) {
-    return { count: 0, resetAt: now + RATE_LIMIT_WINDOW_SECONDS * 1000 };
-  }
-  return record;
+async function isTimedOut(env, ip, fingerprint) {
+  if (await env.RATE_LIMITER.get(`timeout:ip:${ip}`)) return true;
+  if (fingerprint && await env.RATE_LIMITER.get(`timeout:fp:${fingerprint}`)) return true;
+  return false;
 }
 
-async function putRateLimitRecord(env, key, record) {
-  const ttlSeconds = Math.max(60, Math.ceil((record.resetAt - Date.now()) / 1000)); // KV minimum TTL is 60s
-  await env.RATE_LIMITER.put(key, JSON.stringify(record), { expirationTtl: ttlSeconds });
+/** Drops both the IP and (if present) the fingerprint into the 24-hour penalty box. */
+async function applyTimeout(env, ip, fingerprint) {
+  await env.RATE_LIMITER.put(`timeout:ip:${ip}`, '1', { expirationTtl: TIMEOUT_TTL_SECONDS });
+  if (fingerprint) {
+    await env.RATE_LIMITER.put(`timeout:fp:${fingerprint}`, '1', { expirationTtl: TIMEOUT_TTL_SECONDS });
+  }
 }
 
 /**
- * Checks both the IP bucket and, if the client sent a valid device fingerprint, the
- * fingerprint bucket — and rejects if EITHER has hit DAILY_LIMIT. This is what stops someone
- * from resetting their quota by switching VPN exit IPs while keeping the same browser/device.
- * Buckets are only incremented together, after confirming neither is already maxed out, so a
- * rejected request never partially consumes one bucket without the other.
+ * Trigger A — burst/speed spam. Keeps a rolling list of request timestamps under `key` and
+ * reports abuse once more than BURST_MAX_REQUESTS have landed inside BURST_WINDOW_SECONDS.
+ * The list is pruned to the window on every call, so it never grows unbounded, and it's always
+ * written back (even when this call doesn't trip the trigger) so the count stays accurate.
  */
-async function checkAndIncrementRateLimit(env, ip, fingerprint) {
-  const ipKey = `ratelimit:ip:${ip}`;
-  const fpKey = fingerprint ? `ratelimit:fp:${fingerprint}` : null;
+async function checkBurst(env, key) {
+  const now = Date.now();
+  const windowMs = BURST_WINDOW_SECONDS * 1000;
+  const raw = await env.RATE_LIMITER.get(key);
+  let timestamps = raw ? JSON.parse(raw) : [];
+  timestamps = timestamps.filter(t => now - t < windowMs);
+  timestamps.push(now);
+  await env.RATE_LIMITER.put(key, JSON.stringify(timestamps), { expirationTtl: BURST_WINDOW_SECONDS + 10 });
+  return timestamps.length > BURST_MAX_REQUESTS;
+}
 
-  const ipRecord = await getRateLimitRecord(env, ipKey);
-  const fpRecord = fpKey ? await getRateLimitRecord(env, fpKey) : null;
+/**
+ * Trigger B — duplicate spam. Compares `message` against whatever was last stored under `key`
+ * (if anything, within DUPLICATE_WINDOW_SECONDS), then unconditionally overwrites it with the
+ * current message — so every request is only ever compared against the one immediately before
+ * it, not some arbitrary earlier message in the conversation.
+ */
+async function checkDuplicate(env, key, message) {
+  const lastMessage = await env.RATE_LIMITER.get(key);
+  await env.RATE_LIMITER.put(key, message, { expirationTtl: DUPLICATE_WINDOW_SECONDS });
+  return lastMessage === message;
+}
 
-  const ipBlocked = ipRecord.count >= DAILY_LIMIT;
-  const fpBlocked = !!fpRecord && fpRecord.count >= DAILY_LIMIT;
-
-  if (ipBlocked || fpBlocked) {
-    const blockingResetAt = Math.max(
-      ipBlocked ? ipRecord.resetAt : 0,
-      fpBlocked ? fpRecord.resetAt : 0
-    );
-    return { allowed: false, retryAfterSeconds: Math.ceil((blockingResetAt - Date.now()) / 1000) };
-  }
-
-  ipRecord.count += 1;
-  await putRateLimitRecord(env, ipKey, ipRecord);
-
-  if (fpKey) {
-    fpRecord.count += 1;
-    await putRateLimitRecord(env, fpKey, fpRecord);
-  }
-
-  return { allowed: true, remaining: DAILY_LIMIT - ipRecord.count };
+/**
+ * Trigger C — gibberish/keyboard-mash detection, run before Gemini ever sees the message so
+ * mashed input never costs a real API call. Two heuristics: 5+ identical characters in a row
+ * (e.g. "aaaaa"), or a 6+ character run of consecutive consonants (e.g. "asdfghjkl") — both are
+ * strong keyboard-mash signals real questions essentially never produce.
+ *
+ * Y counts as a vowel here on purpose — treating it as a consonant made this flag ordinary
+ * English words with no a/e/i/o/u (rhythm, gym, crypt, sync, nymph...) as gibberish, which would
+ * have dropped a real player into the 24-hour penalty box for a completely normal question.
+ */
+function isGibberish(message) {
+  if (/(.)\1{4,}/.test(message)) return true; // same character 5+ times in a row
+  return /[bcdfghjklmnpqrstvwxz]{6,}/i.test(message); // 6+ consecutive consonants
 }
 
 async function callGemini(env, userMessage) {
@@ -269,17 +282,33 @@ export default {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     const fingerprint = sanitizeFingerprint(request.headers.get('X-Device-Fingerprint'));
 
-    // Gate + increment BEFORE calling Gemini, per spec — note this means a failed upstream
-    // call still consumes one of the user's slots for the day. If you'd rather only charge
-    // quota on a successful reply, move the increment to after a successful callGemini().
-    const rateLimit = await checkAndIncrementRateLimit(env, ip, fingerprint);
-    if (!rateLimit.allowed) {
-      return jsonResponse(
-        { error: 'Daily limit reached. Try again tomorrow!' },
-        429,
-        origin,
-        { 'Retry-After': String(rateLimit.retryAfterSeconds) }
-      );
+    // Already in the 24-hour penalty box — reject immediately, no need to run the trigger
+    // checks again or touch Gemini.
+    if (await isTimedOut(env, ip, fingerprint)) {
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
+    }
+
+    // Trigger A: burst/speed spam (checked — and its timestamp recorded — for both IP and
+    // fingerprint, since either alone hitting the threshold is enough to be abuse).
+    const ipBurst = await checkBurst(env, `burst:ip:${ip}`);
+    const fpBurst = fingerprint ? await checkBurst(env, `burst:fp:${fingerprint}`) : false;
+    if (ipBurst || fpBurst) {
+      await applyTimeout(env, ip, fingerprint);
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
+    }
+
+    // Trigger C: gibberish — cheap, no KV needed, so it's checked before Trigger B.
+    if (isGibberish(message)) {
+      await applyTimeout(env, ip, fingerprint);
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
+    }
+
+    // Trigger B: exact duplicate of the immediately-previous message from this IP or fingerprint.
+    const ipDuplicate = await checkDuplicate(env, `lastmsg:ip:${ip}`, message);
+    const fpDuplicate = fingerprint ? await checkDuplicate(env, `lastmsg:fp:${fingerprint}`, message) : false;
+    if (ipDuplicate || fpDuplicate) {
+      await applyTimeout(env, ip, fingerprint);
+      return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
     }
 
     try {

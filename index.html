@@ -2179,36 +2179,6 @@
 
     // ---------- LumyBot Chat Widget ----------
     const LUMYBOT_WORKER_URL = 'https://broad-mouse-26d6.harshith-redrouthu21.workers.dev';
-    const LUMYBOT_DAILY_LIMIT = 2; // must match DAILY_LIMIT in worker.js — this is a separate constant, not shared, so keep them in sync manually
-    const LUMYBOT_STORAGE_KEY = 'cobbleverse_lumybot_usage';
-
-    // This is a UX-only convenience layer, NOT real security — it lives in the user's own
-    // browser and can be cleared at will. The Cloudflare Worker's KV-backed limiter is the
-    // actual quota protection; this just avoids letting someone type 6 messages and only
-    // find out about the limit after the 6th round-trip.
-    function getLumybotUsage() {
-      try {
-        const raw = localStorage.getItem(LUMYBOT_STORAGE_KEY);
-        if (!raw) return { count: 0, resetAt: Date.now() + 86400000 };
-        const data = JSON.parse(raw);
-        if (!data.resetAt || Date.now() > data.resetAt) {
-          return { count: 0, resetAt: Date.now() + 86400000 };
-        }
-        return data;
-      } catch (e) {
-        return { count: 0, resetAt: Date.now() + 86400000 };
-      }
-    }
-
-    function setLumybotUsage(usage) {
-      try {
-        localStorage.setItem(LUMYBOT_STORAGE_KEY, JSON.stringify(usage));
-      } catch (e) {}
-    }
-
-    function lumybotLimitReached() {
-      return getLumybotUsage().count >= LUMYBOT_DAILY_LIMIT;
-    }
 
     // Kicked off once, immediately, so the promise has usually already resolved by the time
     // the user sends their first message — FingerprintJS.load() takes a moment to run its
@@ -2232,16 +2202,17 @@
       const inputEl = document.getElementById('lumybot-input');
       const sendBtn = document.getElementById('lumybot-send');
 
-      function refreshInputState() {
-        if (lumybotLimitReached()) {
-          inputEl.disabled = true;
-          sendBtn.disabled = true;
-          inputEl.placeholder = `Daily limit of ${LUMYBOT_DAILY_LIMIT} questions reached. Join our Discord!`;
-        } else {
-          inputEl.disabled = false;
-          sendBtn.disabled = false;
-          inputEl.placeholder = 'Ask about Cobbleverse…';
-        }
+      // Set once the worker responds with the 24-hour abuse timeout — locks the input for the
+      // rest of this page session. The backend (keyed on IP/device fingerprint) is the real
+      // source of truth; this is purely a UX lock so the user visually understands why they're
+      // blocked, rather than wondering why send silently stopped working.
+      let blockedForAbuse = false;
+
+      function lockInputForAbuse() {
+        blockedForAbuse = true;
+        inputEl.disabled = true;
+        sendBtn.disabled = true;
+        inputEl.placeholder = 'You are temporarily blocked. Try again in 24 hours.';
       }
 
       // Minimal, safe Markdown renderer for bot replies — just bold + bullet lists, which is
@@ -2308,7 +2279,6 @@
       function openWidget() {
         win.classList.add('open');
         win.setAttribute('aria-hidden', 'false');
-        refreshInputState();
         if (!inputEl.disabled) inputEl.focus();
       }
 
@@ -2320,10 +2290,6 @@
       async function handleSend() {
         const message = inputEl.value.trim();
         if (!message || inputEl.disabled) return;
-        if (lumybotLimitReached()) {
-          refreshInputState();
-          return;
-        }
 
         appendMessage('user', message);
         inputEl.value = '';
@@ -2344,32 +2310,29 @@
 
           hideTyping();
 
-          if (res.status === 429) {
-            // The worker's KV counter is the real source of truth — sync local usage to
-            // "maxed out" immediately even if this browser's own counter thought it had
-            // questions left (e.g. localStorage was cleared, or a second tab is open).
-            setLumybotUsage({ count: LUMYBOT_DAILY_LIMIT, resetAt: Date.now() + 86400000 });
-            appendMessage('bot', 'Daily limit reached. Try again tomorrow!');
+          const data = await res.json().catch(() => ({}));
+
+          if (res.status === 429 || res.status === 403) {
+            appendMessage('error', data.error || 'Abusing the bot is not allowed. You can reuse the bot in 24 hours.');
+            lockInputForAbuse();
             return;
           }
-
-          const data = await res.json().catch(() => ({}));
 
           if (!res.ok) {
             appendMessage('error', data.error || 'Something went wrong. Please try again.');
             return;
           }
 
-          const usage = getLumybotUsage();
-          usage.count += 1;
-          setLumybotUsage(usage);
           appendMessage('bot', data.reply);
         } catch (err) {
           hideTyping();
           appendMessage('error', 'Could not reach LumyBot. Check your connection and try again.');
         } finally {
-          refreshInputState();
-          if (!inputEl.disabled) inputEl.focus();
+          if (!blockedForAbuse) {
+            inputEl.disabled = false;
+            sendBtn.disabled = false;
+            if (document.activeElement !== inputEl) inputEl.focus();
+          }
         }
       }
 
@@ -2387,7 +2350,6 @@
       });
 
       appendMessage('bot', "Hey there, Trainer! I'm LumyBot — ask me anything about Cobbleverse.");
-      refreshInputState();
     }
     initLumyBot();
 
