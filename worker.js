@@ -33,7 +33,7 @@ const GEMINI_MODEL = 'gemini-3.5-flash-lite'; // gemini-1.5-flash and gemini-2.5
 // isGibberish below) that drop a user straight into a 24-hour penalty box.
 const TIMEOUT_TTL_SECONDS = 86400; // 24 hours
 const BURST_WINDOW_SECONDS = 60;
-const BURST_MAX_REQUESTS = 2; // more than this many requests inside the window trips the timeout — i.e. a 3rd message within 60s trips it
+const BURST_MAX_REQUESTS = 10; // more than this many requests inside the window trips the timeout — raised from 2 after live-reproducing a false-positive ban on completely normal, deliberate testing (3 messages in under 20 seconds tripped it); a real automated spam script fires far faster than this, so 10/60s still catches genuine abuse without banning real users mid-conversation
 const DUPLICATE_WINDOW_SECONDS = 90; // how long a message is remembered for exact-duplicate detection
 const ABUSE_MESSAGE = 'Abusing the bot is not allowed. You can reuse the bot in 24 hours.';
 
@@ -192,15 +192,21 @@ async function checkBurst(env, key) {
 }
 
 /**
- * Trigger B — duplicate spam. Compares `message` against whatever was last stored under `key`
- * (if anything, within DUPLICATE_WINDOW_SECONDS), then unconditionally overwrites it with the
- * current message — so every request is only ever compared against the one immediately before
- * it, not some arbitrary earlier message in the conversation.
+ * Trigger B — duplicate spam. Reading and recording are deliberately separate calls: `key` is
+ * only ever written to AFTER a message has been successfully answered (see the fetch handler),
+ * never on a failed attempt. That distinction matters — earlier this compared against, and
+ * recorded, every incoming message unconditionally, which meant a single transient Gemini
+ * failure would get a user banned the moment they did the obvious, correct thing: retry the
+ * exact same question. Now a retry after a failure has nothing matching to compare against,
+ * since the failed attempt was never recorded — only re-asking a question that was already
+ * successfully answered counts as a duplicate.
  */
-async function checkDuplicate(env, key, message) {
-  const lastMessage = await env.RATE_LIMITER.get(key);
+async function getLastMessage(env, key) {
+  return env.RATE_LIMITER.get(key);
+}
+
+async function recordLastMessage(env, key, message) {
   await env.RATE_LIMITER.put(key, message, { expirationTtl: DUPLICATE_WINDOW_SECONDS });
-  return lastMessage === message;
 }
 
 /**
@@ -218,21 +224,8 @@ function isGibberish(message) {
   return /[bcdfghjklmnpqrstvwxz]{6,}/i.test(message); // 6+ consecutive consonants
 }
 
-async function callGemini(env, userMessage) {
+async function fetchGemini(env, payload) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
-
-  const payload = {
-    systemInstruction: {
-      parts: [{ text: buildSystemPrompt(userMessage) }],
-    },
-    contents: [
-      { role: 'user', parts: [{ text: userMessage }] },
-    ],
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 300, // keeps replies short — cheaper and stays within a free-tier quota faster
-    },
-  };
 
   const res = await fetch(url, {
     method: 'POST',
@@ -252,6 +245,39 @@ async function callGemini(env, userMessage) {
 }
 
 /**
+ * Transient failures (a momentary network blip, brief rate limiting on Google's side) are
+ * normal for any external API — surfacing them straight to the user as a hard error is
+ * needlessly harsh, especially since a user's natural reaction (retrying the same question)
+ * used to get mistaken for duplicate-spam and trigger a 24-hour ban. One quick automatic retry
+ * clears most of these before the user ever sees a failure.
+ */
+async function fetchGeminiWithRetry(env, payload, label) {
+  try {
+    return await fetchGemini(env, payload);
+  } catch (err) {
+    console.error(`${label}: attempt 1 failed, retrying once —`, err?.message || err);
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return await fetchGemini(env, payload);
+  }
+}
+
+async function callGemini(env, userMessage) {
+  const payload = {
+    systemInstruction: {
+      parts: [{ text: buildSystemPrompt(userMessage) }],
+    },
+    contents: [
+      { role: 'user', parts: [{ text: userMessage }] },
+    ],
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 300, // keeps replies short — cheaper and stays within a free-tier quota faster
+    },
+  };
+  return fetchGeminiWithRetry(env, payload, 'callGemini');
+}
+
+/**
  * Translates a bot reply on demand (the "Translate" link under each chat bubble). Reuses the
  * same Gemini model/key as the main chat call — no new secrets or providers to manage — but with
  * its own minimal system prompt (translate-only, no spawn lore, no persona) and lower temperature
@@ -259,8 +285,6 @@ async function callGemini(env, userMessage) {
  */
 async function translateText(env, text, targetLang) {
   const langName = targetLang === 'it' ? 'Italian' : 'English';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
-
   const payload = {
     systemInstruction: {
       parts: [{ text: `Translate the user's message into ${langName}. Output ONLY the translation — no notes, no quotation marks, no preamble. Preserve any Markdown formatting (bold, bullet lists) exactly as it appears in the source.` }],
@@ -273,22 +297,7 @@ async function translateText(env, text, targetLang) {
       maxOutputTokens: 400,
     },
   };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error(`Gemini API error ${res.status}: ${errText}`);
-  }
-
-  const data = await res.json();
-  const translated = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!translated) throw new Error('Gemini returned no usable text.');
-  return translated;
+  return fetchGeminiWithRetry(env, payload, 'translateText');
 }
 
 // ---------- Entry point ----------
@@ -351,6 +360,7 @@ export default {
         const translated = await translateText(env, text, targetLang);
         return jsonResponse({ translated }, 200, origin);
       } catch (err) {
+        console.error('translateText failed:', err?.message || err);
         return jsonResponse({ error: 'Translation is temporarily unavailable. Please try again shortly.' }, 502, origin);
       }
     }
@@ -370,18 +380,23 @@ export default {
       return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
     }
 
-    // Trigger B: exact duplicate of the immediately-previous message from this IP or fingerprint.
-    const ipDuplicate = await checkDuplicate(env, `lastmsg:ip:${ip}`, message);
-    const fpDuplicate = fingerprint ? await checkDuplicate(env, `lastmsg:fp:${fingerprint}`, message) : false;
-    if (ipDuplicate || fpDuplicate) {
+    // Trigger B: exact duplicate of the immediately-previous SUCCESSFULLY-ANSWERED message from
+    // this IP or fingerprint. Checked before calling Gemini; only recorded after Gemini succeeds
+    // (see below) so a retry after a failed attempt is never mistaken for spam.
+    const ipLastMessage = await getLastMessage(env, `lastmsg:ip:${ip}`);
+    const fpLastMessage = fingerprint ? await getLastMessage(env, `lastmsg:fp:${fingerprint}`) : null;
+    if (ipLastMessage === message || fpLastMessage === message) {
       await applyTimeout(env, ip, fingerprint);
       return jsonResponse({ error: ABUSE_MESSAGE }, 429, origin);
     }
 
     try {
       const reply = await callGemini(env, message);
+      await recordLastMessage(env, `lastmsg:ip:${ip}`, message);
+      if (fingerprint) await recordLastMessage(env, `lastmsg:fp:${fingerprint}`, message);
       return jsonResponse({ reply }, 200, origin);
     } catch (err) {
+      console.error('callGemini failed:', err?.message || err);
       return jsonResponse({ error: 'LumyBot is temporarily unavailable. Please try again shortly.' }, 502, origin);
     }
   },
